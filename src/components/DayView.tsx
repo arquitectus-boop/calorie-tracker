@@ -87,38 +87,6 @@ export function DayView({ day, onEdit, onDelete, onAdd, onSaveBurned }: Props) {
             <span className="summary-unit">kcal</span>
           </div>
         </div>
-
-        <div className="burned-form">
-          <label className="burned-label" htmlFor="burned-kcal">
-            Calorias gastas
-          </label>
-          <div className="burned-row">
-            <input
-              id="burned-kcal"
-              className="burned-input"
-              type="number"
-              inputMode="numeric"
-              min={0}
-              step={1}
-              placeholder="ex. 2100"
-              value={burnedInput}
-              onChange={(e) => setBurnedInput(e.target.value)}
-            />
-            <button
-              type="button"
-              className="burned-save"
-              onClick={handleSaveBurned}
-              disabled={savingBurned}
-            >
-              Guardar
-            </button>
-          </div>
-          {day.watchBurned > 0 && day.burned !== day.watchBurned && (
-            <p className="burned-hint">
-              Efetivas no resumo: {day.burned} kcal (basal + pulseira com margem)
-            </p>
-          )}
-        </div>
       </section>
 
       {day.entries.length > 1 && (
@@ -144,6 +112,38 @@ export function DayView({ day, onEdit, onDelete, onAdd, onSaveBurned }: Props) {
       )}
 
       <EntryList entries={sorted} onEdit={onEdit} onDelete={onDelete} />
+
+      <div className="burned-form burned-form-below">
+        <label className="burned-label" htmlFor="burned-kcal">
+          Calorias gastas
+        </label>
+        <div className="burned-row">
+          <input
+            id="burned-kcal"
+            className="burned-input"
+            type="number"
+            inputMode="numeric"
+            min={0}
+            step={1}
+            placeholder="ex. 2100"
+            value={burnedInput}
+            onChange={(e) => setBurnedInput(e.target.value)}
+          />
+          <button
+            type="button"
+            className="burned-save"
+            onClick={handleSaveBurned}
+            disabled={savingBurned}
+          >
+            Guardar
+          </button>
+        </div>
+        {day.watchBurned > 0 && day.burned !== day.watchBurned && (
+          <p className="burned-hint">
+            Efetivas no resumo: {day.burned} kcal (basal + pulseira com margem)
+          </p>
+        )}
+      </div>
 
       <button type="button" className="fab" onClick={onAdd} aria-label="Adicionar">
         +
