@@ -1,0 +1,75 @@
+:root {
+  color-scheme: dark;
+  --bg: #0a1f12;
+  --bg-elevated: #0d2818;
+  --bg-card: #123525;
+  --bg-card-hover: #16432e;
+  --green: #1b5e3a;
+  --green-bright: #2e8b57;
+  --green-soft: #a8e6c3;
+  --green-muted: #6bb890;
+  --text: #e8f5ee;
+  --text-muted: #8fb9a3;
+  --danger: #e57373;
+  --border: rgba(168, 230, 195, 0.12);
+  --radius: 14px;
+  --tap: 48px;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --nav-h: calc(64px + var(--safe-bottom));
+  font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    'SF Pro Text',
+    'Segoe UI',
+    Roboto,
+    Helvetica,
+    Arial,
+    sans-serif;
+  line-height: 1.4;
+  font-weight: 400;
+  color: var(--text);
+  background: var(--bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  min-height: 100%;
+  min-height: 100dvh;
+  background: var(--bg);
+}
+
+body {
+  overscroll-behavior-y: none;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.9em;
+  background: rgba(0, 0, 0, 0.25);
+  padding: 0.1em 0.35em;
+  border-radius: 6px;
+}
