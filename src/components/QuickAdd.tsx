@@ -28,7 +28,7 @@ export function QuickAdd({ recent, frequent, onPick }: Props) {
                 className="chip"
                 onClick={() => onPick(f)}
               >
-                <span className="chip-kcal">{f.kcal}</span>
+                <span className="chip-kcal">{f.kcal}<span className="chip-kcal-unit"> kcal</span></span>
                 <span className="chip-name">{f.name}</span>
               </button>
             ))}
@@ -46,7 +46,7 @@ export function QuickAdd({ recent, frequent, onPick }: Props) {
                 className="chip"
                 onClick={() => onPick(f)}
               >
-                <span className="chip-kcal">{f.kcal}</span>
+                <span className="chip-kcal">{f.kcal}<span className="chip-kcal-unit"> kcal</span></span>
                 <span className="chip-name">{f.name}</span>
               </button>
             ))}

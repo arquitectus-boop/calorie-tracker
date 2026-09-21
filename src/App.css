@@ -428,6 +428,13 @@
   font-variant-numeric: tabular-nums;
 }
 
+.chip-kcal-unit {
+  font-weight: 600;
+  font-size: 0.65em;
+  opacity: 0.9;
+  margin-left: 1px;
+}
+
 .chip-name {
   overflow: hidden;
   text-overflow: ellipsis;
