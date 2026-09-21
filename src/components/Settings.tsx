@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
-import type { AppSettings } from '../types'
+import type { AppSettings, AppThemeId } from '../types'
 import { WATCH_ERROR_OPTIONS } from '../lib/settings'
+import { THEME_OPTIONS, applyTheme } from '../lib/theme'
 
 interface Props {
   settings: AppSettings
@@ -12,23 +13,54 @@ export function Settings({ settings, onSave }: Props) {
     settings.basalKcal > 0 ? String(settings.basalKcal) : '',
   )
   const [errorPct, setErrorPct] = useState(settings.watchErrorPercent)
+  const [themeId, setThemeId] = useState<AppThemeId>(settings.themeId)
 
   useEffect(() => {
     setBasal(settings.basalKcal > 0 ? String(settings.basalKcal) : '')
     setErrorPct(settings.watchErrorPercent)
+    setThemeId(settings.themeId)
   }, [settings])
+
+  function pickTheme(id: AppThemeId) {
+    setThemeId(id)
+    applyTheme(id)
+  }
 
   function handleSave() {
     const value = Number(basal.replace(',', '.'))
     onSave({
       basalKcal: Number.isFinite(value) ? value : 0,
       watchErrorPercent: errorPct,
+      themeId,
     })
   }
 
   return (
     <div className="settings">
       <h1 className="page-title">Definições</h1>
+
+      <section className="settings-card">
+        <h2 className="settings-title">Cor da app</h2>
+        <p className="settings-help">Escolhe a cor principal do ecrã.</p>
+        <div className="theme-options" role="group" aria-label="Cor da app">
+          {THEME_OPTIONS.map((theme) => (
+            <button
+              key={theme.id}
+              type="button"
+              className={themeId === theme.id ? 'theme-btn active' : 'theme-btn'}
+              onClick={() => pickTheme(theme.id)}
+              aria-pressed={themeId === theme.id}
+            >
+              <span
+                className="theme-swatch"
+                style={{ background: theme.swatch }}
+                aria-hidden
+              />
+              <span className="theme-name">{theme.label}</span>
+            </button>
+          ))}
+        </div>
+      </section>
 
       <section className="settings-card">
         <h2 className="settings-title">Margem de erro da pulseira</h2>

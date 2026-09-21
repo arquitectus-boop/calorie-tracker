@@ -10,11 +10,15 @@ export interface FoodEntry {
 
 export type View = 'hoje' | 'historico' | 'adicionar' | 'importar' | 'definicoes'
 
+export type AppThemeId = 'verde' | 'azul' | 'roxo' | 'laranja' | 'vermelho' | 'cinza'
+
 export interface AppSettings {
   /** Basal metabolic rate in kcal/day */
   basalKcal: number
   /** Watch overestimate margin as percent (0–100) */
   watchErrorPercent: number
+  /** App color theme */
+  themeId: AppThemeId
 }
 
 export interface DaySummary {

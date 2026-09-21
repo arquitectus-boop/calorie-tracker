@@ -10,6 +10,7 @@ import {
 } from '../lib/storage'
 import { todayISO } from '../lib/dates'
 import { effectiveBurned, loadSettings, saveSettings } from '../lib/settings'
+import { applyTheme } from '../lib/theme'
 
 function sortEntries(a: FoodEntry, b: FoodEntry) {
   if (a.date !== b.date) return b.date.localeCompare(a.date)
@@ -33,7 +34,9 @@ export function useEntries() {
       if (!cancelled) {
         setEntries(data.sort(sortEntries))
         setBurnedByDate(burned)
-        setSettings(loadSettings())
+        const loaded = loadSettings()
+        setSettings(loaded)
+        applyTheme(loaded.themeId)
         setLoading(false)
       }
     })()
