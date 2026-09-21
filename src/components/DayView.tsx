@@ -90,7 +90,7 @@ export function DayView({ day, onEdit, onDelete, onAdd, onSaveBurned }: Props) {
 
         <div className="burned-form">
           <label className="burned-label" htmlFor="burned-kcal">
-            Gastas do relógio (Xiaomi)
+            Calorias gastas
           </label>
           <div className="burned-row">
             <input
