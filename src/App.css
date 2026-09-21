@@ -109,11 +109,20 @@
 
 .entry-kcal {
   flex: 0 0 auto;
-  min-width: 56px;
+  min-width: 72px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   color: var(--green-soft);
   font-size: 1.1rem;
+  line-height: 1.15;
+}
+
+.entry-kcal-unit {
+  font-weight: 600;
+  font-size: 0.72rem;
+  letter-spacing: 0.02em;
+  color: var(--text-muted);
+  text-transform: none;
 }
 
 .entry-body {

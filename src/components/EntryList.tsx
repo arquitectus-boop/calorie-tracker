@@ -28,7 +28,10 @@ export function EntryList({ entries, onEdit, onDelete }: Props) {
               onClick={() => onEdit(e)}
               aria-label={`Editar ${e.name}`}
             >
-              <span className="entry-kcal">{line}</span>
+              <span className="entry-kcal">
+                {line}
+                <span className="entry-kcal-unit"> kcal</span>
+              </span>
               <span className="entry-body">
                 <span className="entry-name">{e.name}</span>
                 {e.quantity !== 1 && (
