@@ -21,6 +21,7 @@ function App() {
     importEntries,
     frequentFoods,
     recentFoods,
+    setDayBurned,
   } = useEntries()
 
   const [view, setView] = useState<View>('hoje')
@@ -39,6 +40,7 @@ function App() {
       days.find((d) => d.date === date) ?? {
         date,
         total: 0,
+        burned: 0,
         entries: [] as FoodEntry[],
       }
     )
@@ -92,6 +94,10 @@ function App() {
             onEdit={goEdit}
             onDelete={handleDelete}
             onAdd={() => goAdd()}
+            onSaveBurned={async (date, kcal) => {
+              await setDayBurned(date, kcal)
+              showToast('Calorias gastas guardadas')
+            }}
           />
         )}
 

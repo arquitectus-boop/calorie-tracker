@@ -2,7 +2,9 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { DaySummary, FoodEntry } from '../types'
 import {
   deleteEntry as deleteEntryStorage,
+  loadBurnedMap,
   loadEntries,
+  saveBurned,
   saveEntry,
   saveEntriesBulk,
 } from '../lib/storage'
@@ -19,14 +21,16 @@ export function entryLineTotal(e: FoodEntry): number {
 
 export function useEntries() {
   const [entries, setEntries] = useState<FoodEntry[]>([])
+  const [burnedByDate, setBurnedByDate] = useState<Record<string, number>>({})
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     let cancelled = false
     ;(async () => {
-      const data = await loadEntries()
+      const [data, burned] = await Promise.all([loadEntries(), loadBurnedMap()])
       if (!cancelled) {
         setEntries(data.sort(sortEntries))
+        setBurnedByDate(burned)
         setLoading(false)
       }
     })()
@@ -36,8 +40,20 @@ export function useEntries() {
   }, [])
 
   const refresh = useCallback(async () => {
-    const data = await loadEntries()
+    const [data, burned] = await Promise.all([loadEntries(), loadBurnedMap()])
     setEntries(data.sort(sortEntries))
+    setBurnedByDate(burned)
+  }, [])
+
+  const setDayBurned = useCallback(async (date: string, kcal: number) => {
+    const value = Math.max(0, Math.round(kcal) || 0)
+    await saveBurned(date, value)
+    setBurnedByDate((prev) => {
+      const next = { ...prev }
+      if (value === 0) delete next[date]
+      else next[date] = value
+      return next
+    })
   }, [])
 
   const addEntry = useCallback(
@@ -102,11 +118,12 @@ export function useEntries() {
       result.push({
         date,
         total,
+        burned: burnedByDate[date] ?? 0,
         entries: list.sort((a, b) => a.createdAt - b.createdAt || a.id.localeCompare(b.id)),
       })
     }
     return result.sort((a, b) => b.date.localeCompare(a.date))
-  }, [entries])
+  }, [entries, burnedByDate])
 
   const today = useMemo(() => {
     const iso = todayISO()
@@ -114,10 +131,11 @@ export function useEntries() {
       days.find((d) => d.date === iso) ?? {
         date: iso,
         total: 0,
+        burned: burnedByDate[iso] ?? 0,
         entries: [] as FoodEntry[],
       }
     )
-  }, [days])
+  }, [days, burnedByDate])
 
   const frequentFoods = useMemo(() => {
     const counts = new Map<
@@ -167,6 +185,7 @@ export function useEntries() {
     removeEntry,
     importEntries,
     refresh,
+    setDayBurned,
     frequentFoods,
     recentFoods,
   }

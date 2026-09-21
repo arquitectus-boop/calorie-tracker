@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type { DaySummary, FoodEntry } from '../types'
 import { formatDayTitle, formatDatePT } from '../lib/dates'
 import { entryLineTotal } from '../hooks/useEntries'
@@ -11,6 +11,7 @@ interface Props {
   onEdit: (entry: FoodEntry) => void
   onDelete: (entry: FoodEntry) => void
   onAdd: () => void
+  onSaveBurned: (date: string, kcal: number) => Promise<void>
 }
 
 function sortEntries(entries: FoodEntry[], mode: SortMode): FoodEntry[] {
@@ -26,13 +27,38 @@ function sortEntries(entries: FoodEntry[], mode: SortMode): FoodEntry[] {
   )
 }
 
-export function DayView({ day, onEdit, onDelete, onAdd }: Props) {
+function formatDiff(n: number): string {
+  if (n > 0) return `+${n}`
+  return String(n)
+}
+
+export function DayView({ day, onEdit, onDelete, onAdd, onSaveBurned }: Props) {
   const [sortMode, setSortMode] = useState<SortMode>('oldest')
+  const [burnedInput, setBurnedInput] = useState(
+    day.burned > 0 ? String(day.burned) : '',
+  )
+  const [savingBurned, setSavingBurned] = useState(false)
+
+  useEffect(() => {
+    setBurnedInput(day.burned > 0 ? String(day.burned) : '')
+  }, [day.date, day.burned])
 
   const sorted = useMemo(
     () => sortEntries(day.entries, sortMode),
     [day.entries, sortMode],
   )
+
+  const diff = day.total - day.burned
+
+  async function handleSaveBurned() {
+    const value = Number(burnedInput.replace(',', '.'))
+    setSavingBurned(true)
+    try {
+      await onSaveBurned(day.date, Number.isFinite(value) ? value : 0)
+    } finally {
+      setSavingBurned(false)
+    }
+  }
 
   return (
     <div className="day-view">
@@ -41,11 +67,54 @@ export function DayView({ day, onEdit, onDelete, onAdd }: Props) {
           <h1 className="day-title">{formatDayTitle(day.date)}</h1>
           <p className="day-date">{formatDatePT(day.date)}</p>
         </div>
-        <div className="day-total" aria-label="Total do dia">
-          <span className="day-total-num">{day.total}</span>
-          <span className="day-total-unit">kcal</span>
-        </div>
       </header>
+
+      <section className="day-summary" aria-label="Resumo do dia">
+        <div className="summary-grid">
+          <div className="summary-card">
+            <span className="summary-label">Ingeridas</span>
+            <span className="summary-value">{day.total}</span>
+            <span className="summary-unit">kcal</span>
+          </div>
+          <div className="summary-card">
+            <span className="summary-label">Gastas</span>
+            <span className="summary-value">{day.burned}</span>
+            <span className="summary-unit">kcal</span>
+          </div>
+          <div className={`summary-card summary-diff ${diff > 0 ? 'surplus' : diff < 0 ? 'deficit' : ''}`}>
+            <span className="summary-label">Diferença</span>
+            <span className="summary-value">{formatDiff(diff)}</span>
+            <span className="summary-unit">kcal</span>
+          </div>
+        </div>
+
+        <div className="burned-form">
+          <label className="burned-label" htmlFor="burned-kcal">
+            Gastas do relógio (Xiaomi)
+          </label>
+          <div className="burned-row">
+            <input
+              id="burned-kcal"
+              className="burned-input"
+              type="number"
+              inputMode="numeric"
+              min={0}
+              step={1}
+              placeholder="ex. 2100"
+              value={burnedInput}
+              onChange={(e) => setBurnedInput(e.target.value)}
+            />
+            <button
+              type="button"
+              className="burned-save"
+              onClick={handleSaveBurned}
+              disabled={savingBurned}
+            >
+              Guardar
+            </button>
+          </div>
+        </div>
+      </section>
 
       {day.entries.length > 1 && (
         <div className="sort-bar" role="group" aria-label="Ordenar entradas">

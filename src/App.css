@@ -73,6 +73,153 @@
 }
 
 
+
+.day-summary {
+  margin: 0 0 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.summary-card {
+  background: var(--bg-card);
+  border: 1px solid rgba(168, 230, 195, 0.18);
+  border-radius: 14px;
+  padding: 10px 8px;
+  text-align: center;
+}
+
+.summary-label {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.summary-value {
+  display: block;
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1.1;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+}
+
+.summary-unit {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.7rem;
+  color: var(--green-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.summary-diff.surplus .summary-value {
+  color: #ffb4a8;
+}
+
+.summary-diff.deficit .summary-value {
+  color: #9be7b8;
+}
+
+.burned-form {
+  background: var(--bg-card);
+  border: 1px solid rgba(168, 230, 195, 0.18);
+  border-radius: 14px;
+  padding: 12px;
+}
+
+.burned-label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 560;
+  margin-bottom: 8px;
+  color: var(--green-soft);
+}
+
+.burned-row {
+  display: flex;
+  gap: 8px;
+}
+
+.burned-input {
+  flex: 1;
+  min-height: var(--tap);
+  border-radius: 12px;
+  border: 1px solid rgba(168, 230, 195, 0.25);
+  background: rgba(0, 0, 0, 0.22);
+  color: #fff;
+  padding: 0 12px;
+  font-size: 1rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.burned-save {
+  flex: 0 0 auto;
+  min-height: var(--tap);
+  padding: 0 14px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--green);
+  color: #fff;
+  font-weight: 650;
+}
+
+.history-metrics {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  min-width: 132px;
+}
+
+.history-metric {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0;
+}
+
+.history-metric-label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.history-metric-value {
+  font-size: 0.92rem;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  color: #fff;
+}
+
+.history-metric-value.surplus {
+  color: #ffb4a8;
+}
+
+.history-metric-value.deficit {
+  color: #9be7b8;
+}
+
+.history-item {
+  align-items: flex-start;
+}
+
+.history-count {
+  display: block;
+  margin-top: 4px;
+}
+
 .sort-bar {
   display: flex;
   flex-direction: column;

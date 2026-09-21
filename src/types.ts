@@ -13,5 +13,6 @@ export type View = 'hoje' | 'historico' | 'adicionar' | 'importar'
 export interface DaySummary {
   date: string
   total: number
+  burned: number
   entries: FoodEntry[]
 }
