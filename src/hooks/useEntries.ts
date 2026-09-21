@@ -102,7 +102,7 @@ export function useEntries() {
       result.push({
         date,
         total,
-        entries: list.sort((a, b) => b.createdAt - a.createdAt),
+        entries: list.sort((a, b) => a.createdAt - b.createdAt || a.id.localeCompare(b.id)),
       })
     }
     return result.sort((a, b) => b.date.localeCompare(a.date))

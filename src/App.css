@@ -72,6 +72,47 @@
   letter-spacing: 0.06em;
 }
 
+
+.sort-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0 0 12px;
+}
+
+.sort-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.sort-options {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.sort-btn {
+  flex: 1 1 auto;
+  min-height: 40px;
+  padding: 8px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(140, 200, 160, 0.28);
+  background: rgba(13, 40, 24, 0.55);
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 560;
+  line-height: 1.2;
+}
+
+.sort-btn.active {
+  background: rgba(56, 142, 90, 0.35);
+  border-color: rgba(120, 210, 150, 0.55);
+  color: var(--green-soft);
+}
+
 .entry-list {
   list-style: none;
   margin: 0;
