@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import type { DaySummary, FoodEntry } from '../types'
+import type { AppSettings, DaySummary, FoodEntry } from '../types'
 import {
   deleteEntry as deleteEntryStorage,
   loadBurnedMap,
@@ -9,6 +9,7 @@ import {
   saveEntriesBulk,
 } from '../lib/storage'
 import { todayISO } from '../lib/dates'
+import { effectiveBurned, loadSettings, saveSettings } from '../lib/settings'
 
 function sortEntries(a: FoodEntry, b: FoodEntry) {
   if (a.date !== b.date) return b.date.localeCompare(a.date)
@@ -22,6 +23,7 @@ export function entryLineTotal(e: FoodEntry): number {
 export function useEntries() {
   const [entries, setEntries] = useState<FoodEntry[]>([])
   const [burnedByDate, setBurnedByDate] = useState<Record<string, number>>({})
+  const [settings, setSettings] = useState<AppSettings>(() => loadSettings())
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -31,6 +33,7 @@ export function useEntries() {
       if (!cancelled) {
         setEntries(data.sort(sortEntries))
         setBurnedByDate(burned)
+        setSettings(loadSettings())
         setLoading(false)
       }
     })()
@@ -54,6 +57,11 @@ export function useEntries() {
       else next[date] = value
       return next
     })
+  }, [])
+
+  const updateSettings = useCallback((next: AppSettings) => {
+    saveSettings(next)
+    setSettings(next)
   }, [])
 
   const addEntry = useCallback(
@@ -112,18 +120,23 @@ export function useEntries() {
       list.push(e)
       map.set(e.date, list)
     }
+    for (const date of Object.keys(burnedByDate)) {
+      if (!map.has(date)) map.set(date, [])
+    }
     const result: DaySummary[] = []
     for (const [date, list] of map) {
       const total = list.reduce((s, e) => s + entryLineTotal(e), 0)
+      const watchBurned = burnedByDate[date] ?? 0
       result.push({
         date,
         total,
-        burned: burnedByDate[date] ?? 0,
+        watchBurned,
+        burned: effectiveBurned(watchBurned, settings),
         entries: list.sort((a, b) => a.createdAt - b.createdAt || a.id.localeCompare(b.id)),
       })
     }
     return result.sort((a, b) => b.date.localeCompare(a.date))
-  }, [entries, burnedByDate])
+  }, [entries, burnedByDate, settings])
 
   const today = useMemo(() => {
     const iso = todayISO()
@@ -131,11 +144,12 @@ export function useEntries() {
       days.find((d) => d.date === iso) ?? {
         date: iso,
         total: 0,
-        burned: burnedByDate[iso] ?? 0,
+        watchBurned: burnedByDate[iso] ?? 0,
+        burned: effectiveBurned(burnedByDate[iso] ?? 0, settings),
         entries: [] as FoodEntry[],
       }
     )
-  }, [days, burnedByDate])
+  }, [days, burnedByDate, settings])
 
   const frequentFoods = useMemo(() => {
     const counts = new Map<
@@ -180,12 +194,14 @@ export function useEntries() {
     days,
     today,
     loading,
+    settings,
     addEntry,
     updateEntry,
     removeEntry,
     importEntries,
     refresh,
     setDayBurned,
+    updateSettings,
     frequentFoods,
     recentFoods,
   }

@@ -35,13 +35,13 @@ function formatDiff(n: number): string {
 export function DayView({ day, onEdit, onDelete, onAdd, onSaveBurned }: Props) {
   const [sortMode, setSortMode] = useState<SortMode>('oldest')
   const [burnedInput, setBurnedInput] = useState(
-    day.burned > 0 ? String(day.burned) : '',
+    day.watchBurned > 0 ? String(day.watchBurned) : '',
   )
   const [savingBurned, setSavingBurned] = useState(false)
 
   useEffect(() => {
-    setBurnedInput(day.burned > 0 ? String(day.burned) : '')
-  }, [day.date, day.burned])
+    setBurnedInput(day.watchBurned > 0 ? String(day.watchBurned) : '')
+  }, [day.date, day.watchBurned])
 
   const sorted = useMemo(
     () => sortEntries(day.entries, sortMode),
@@ -113,6 +113,11 @@ export function DayView({ day, onEdit, onDelete, onAdd, onSaveBurned }: Props) {
               Guardar
             </button>
           </div>
+          {day.watchBurned > 0 && day.burned !== day.watchBurned && (
+            <p className="burned-hint">
+              Efetivas no resumo: {day.burned} kcal (basal + pulseira com margem)
+            </p>
+          )}
         </div>
       </section>
 

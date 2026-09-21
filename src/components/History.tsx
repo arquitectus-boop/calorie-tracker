@@ -14,7 +14,7 @@ function formatDiff(n: number): string {
 export function History({ days, onSelectDay }: Props) {
   const today = todayISO()
   const past = days.filter(
-    (d) => d.date !== today || d.entries.length > 0 || d.burned > 0,
+    (d) => d.date !== today || d.entries.length > 0 || d.burned > 0 || d.watchBurned > 0,
   )
 
   if (past.length === 0) {

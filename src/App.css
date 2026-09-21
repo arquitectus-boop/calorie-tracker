@@ -687,3 +687,94 @@
     right: calc(50% - 260px + 16px);
   }
 }
+
+
+.burned-hint {
+  margin: 8px 0 0;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  line-height: 1.35;
+}
+
+.settings-card {
+  background: var(--bg-card);
+  border: 1px solid rgba(168, 230, 195, 0.18);
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 12px;
+}
+
+.settings-title {
+  margin: 0 0 6px;
+  font-size: 1.05rem;
+  font-weight: 650;
+  color: var(--green-soft);
+}
+
+.settings-help {
+  margin: 0 0 12px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.pct-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pct-btn {
+  min-width: 52px;
+  min-height: 40px;
+  padding: 8px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(140, 200, 160, 0.28);
+  background: rgba(13, 40, 24, 0.55);
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.pct-btn.active {
+  background: rgba(56, 142, 90, 0.35);
+  border-color: rgba(120, 210, 150, 0.55);
+  color: var(--green-soft);
+}
+
+.settings-input {
+  width: 100%;
+  min-height: var(--tap);
+  border-radius: 12px;
+  border: 1px solid rgba(168, 230, 195, 0.25);
+  background: rgba(0, 0, 0, 0.22);
+  color: #fff;
+  padding: 0 12px;
+  font-size: 1rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.settings-formula {
+  margin: 4px 0 14px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.settings-save {
+  width: 100%;
+  min-height: var(--tap);
+  border: 0;
+  border-radius: 12px;
+  background: var(--green);
+  color: #fff;
+  font-weight: 650;
+  font-size: 1rem;
+}
+
+.bottom-nav .nav-label {
+  font-size: 0.62rem;
+}
+
+.bottom-nav .nav-item {
+  padding: 6px 2px;
+}

@@ -5,6 +5,7 @@ import { EntryForm } from './components/EntryForm'
 import { History } from './components/History'
 import { ImportKeep } from './components/ImportKeep'
 import { QuickAdd } from './components/QuickAdd'
+import { Settings } from './components/Settings'
 import { useEntries } from './hooks/useEntries'
 import { todayISO } from './lib/dates'
 import type { FoodEntry, View } from './types'
@@ -22,6 +23,8 @@ function App() {
     frequentFoods,
     recentFoods,
     setDayBurned,
+    settings,
+    updateSettings,
   } = useEntries()
 
   const [view, setView] = useState<View>('hoje')
@@ -40,6 +43,7 @@ function App() {
       days.find((d) => d.date === date) ?? {
         date,
         total: 0,
+        watchBurned: 0,
         burned: 0,
         entries: [] as FoodEntry[],
       }
@@ -156,6 +160,16 @@ function App() {
             onDone={() => {
               showToast('Importação concluída')
               setView('hoje')
+            }}
+          />
+        )}
+
+        {view === 'definicoes' && (
+          <Settings
+            settings={settings}
+            onSave={(next) => {
+              updateSettings(next)
+              showToast('Definições guardadas')
             }}
           />
         )}
