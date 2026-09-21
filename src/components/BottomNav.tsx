@@ -11,7 +11,7 @@ export function BottomNav({ view, onChange }: Props) {
     { id: 'historico', label: 'Histórico', icon: '📋' },
     { id: 'adicionar', label: 'Adicionar', icon: '＋' },
     { id: 'importar', label: 'Importar', icon: '📥' },
-    { id: 'definicoes', label: 'Definições', icon: '⚙️' },
+    { id: 'definicoes', label: 'Ajustes', icon: '⚙️' },
   ]
 
   return (

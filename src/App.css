@@ -383,15 +383,16 @@
   right: 0;
   bottom: 0;
   height: var(--nav-h);
-  padding: 6px 8px var(--safe-bottom);
+  padding: 4px 4px var(--safe-bottom);
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 4px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 2px;
   background: rgba(10, 31, 18, 0.92);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border-top: 1px solid var(--border);
   z-index: 30;
+  overflow: hidden;
 }
 
 .nav-item {
@@ -399,13 +400,14 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
+  gap: 1px;
   border: 0;
   background: transparent;
   color: var(--text-muted);
-  border-radius: 12px;
-  min-height: 52px;
-  padding: 6px 4px;
+  border-radius: 10px;
+  min-height: 48px;
+  min-width: 0;
+  padding: 4px 1px;
 }
 
 .nav-item.active {
@@ -419,8 +421,13 @@
 }
 
 .nav-label {
-  font-size: 0.7rem;
+  font-size: 0.58rem;
   font-weight: 600;
+  line-height: 1.1;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .history-list {
@@ -772,9 +779,9 @@
 }
 
 .bottom-nav .nav-label {
-  font-size: 0.62rem;
+  font-size: 0.55rem;
 }
 
 .bottom-nav .nav-item {
-  padding: 6px 2px;
+  padding: 4px 1px;
 }
