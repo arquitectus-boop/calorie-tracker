@@ -830,3 +830,21 @@
   margin-top: 16px;
   margin-bottom: 72px;
 }
+
+.backup-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.backup-actions .btn {
+  min-width: 0;
+}
+
+.backup-file-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+

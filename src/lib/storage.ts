@@ -150,6 +150,20 @@ export async function saveEntriesBulk(entries: FoodEntry[]): Promise<void> {
   }
 }
 
+/** Replace the complete entries collection, including the localStorage mirror. */
+export async function replaceAllEntries(entries: FoodEntry[]): Promise<void> {
+  try {
+    const db = await getDB()
+    const tx = db.transaction('entries', 'readwrite')
+    await tx.store.clear()
+    for (const entry of entries) await tx.store.put(entry)
+    await tx.done
+    saveToLocalStorage(entries)
+  } catch {
+    saveToLocalStorage(entries)
+  }
+}
+
 export async function deleteEntry(id: string): Promise<void> {
   try {
     const db = await getDB()
@@ -212,3 +226,22 @@ export async function saveBurned(date: string, kcal: number): Promise<void> {
     saveBurnedToLocalStorage(map)
   }
 }
+
+/** Replace every saved watch value, including the localStorage mirror. */
+export async function replaceAllBurned(
+  map: Record<string, number>,
+): Promise<void> {
+  try {
+    const db = await getDB()
+    const tx = db.transaction('burned', 'readwrite')
+    await tx.store.clear()
+    for (const [date, kcal] of Object.entries(map)) {
+      await tx.store.put({ date, kcal })
+    }
+    await tx.done
+    saveBurnedToLocalStorage(map)
+  } catch {
+    saveBurnedToLocalStorage(map)
+  }
+}
+

@@ -11,6 +11,12 @@ import {
 import { todayISO } from '../lib/dates'
 import { effectiveBurned, loadSettings, saveSettings } from '../lib/settings'
 import { applyTheme } from '../lib/theme'
+import {
+  createBackup,
+  downloadBackup,
+  readBackupFile,
+  restoreBackup,
+} from '../lib/backup'
 
 function sortEntries(a: FoodEntry, b: FoodEntry) {
   if (a.date !== b.date) return b.date.localeCompare(a.date)
@@ -66,6 +72,29 @@ export function useEntries() {
     saveSettings(next)
     setSettings(next)
   }, [])
+
+  const exportBackup = useCallback(async () => {
+    const backup = await createBackup()
+    await downloadBackup(backup)
+  }, [])
+
+  const importBackup = useCallback(
+    async (file: File) => {
+      const backup = await readBackupFile(file)
+      const confirmed = window.confirm(
+        'Restaurar esta cópia de segurança? Os registos e definições atuais serão substituídos.',
+      )
+      if (!confirmed) return false
+
+      await restoreBackup(backup)
+      await refresh()
+      const loaded = loadSettings()
+      setSettings(loaded)
+      applyTheme(loaded.themeId)
+      return true
+    },
+    [refresh],
+  )
 
   const addEntry = useCallback(
     async ( partial: {
@@ -202,6 +231,8 @@ export function useEntries() {
     updateEntry,
     removeEntry,
     importEntries,
+    exportBackup,
+    importBackup,
     refresh,
     setDayBurned,
     updateSettings,

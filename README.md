@@ -43,6 +43,7 @@ Para instalar como app (modo standalone):
 4. Confirma o nome (**Calorias**) e toca em **Adicionar**.
 
 A app abre sem barra do Safari, com ícone próprio e tema verde escuro.
+**Cópias de segurança:** em **Definições → Cópia de segurança**, exporta o JSON e escolhe **Guardar em Ficheiros** (idealmente iCloud Drive). O Safari pode apagar dados locais ao limpar a cache; importa o ficheiro apenas quando quiseres substituir os dados atuais.
 **Nota:** o Safari exige HTTPS (ou `localhost`) para service workers / instalação completa. Em rede local, usa um túnel (ex. `npx vite --host`) com HTTPS, ou faz deploy num hosting estático.
 
 ## Funcionalidades
@@ -54,6 +55,7 @@ A app abre sem barra do Safari, com ícone próprio e tema verde escuro.
 - Atalhos de alimentos recentes / frequentes
 - Offline: dados em IndexedDB (com cópia em `localStorage`)
 - Importar texto no estilo Google Keep (cabeçalhos de data + linhas de calorias)
+- Cópia de segurança: exportar/importar registos, calorias gastas e definições em JSON
 
 ### Formato Keep suportado
 

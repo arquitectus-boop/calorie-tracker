@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { AppSettings, AppThemeId } from '../types'
 import { WATCH_ERROR_OPTIONS } from '../lib/settings'
 import { THEME_OPTIONS, applyTheme } from '../lib/theme'
@@ -6,14 +6,17 @@ import { THEME_OPTIONS, applyTheme } from '../lib/theme'
 interface Props {
   settings: AppSettings
   onSave: (settings: AppSettings) => void
+  onExportBackup: () => Promise<void>
+  onImportBackup: (file: File) => Promise<void>
 }
 
-export function Settings({ settings, onSave }: Props) {
+export function Settings({ settings, onSave, onExportBackup, onImportBackup }: Props) {
   const [basal, setBasal] = useState(
     settings.basalKcal > 0 ? String(settings.basalKcal) : '',
   )
   const [errorPct, setErrorPct] = useState(settings.watchErrorPercent)
   const [themeId, setThemeId] = useState<AppThemeId>(settings.themeId)
+  const backupInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     setBasal(settings.basalKcal > 0 ? String(settings.basalKcal) : '')
@@ -95,6 +98,36 @@ export function Settings({ settings, onSave }: Props) {
           placeholder="ex. 1600"
           value={basal}
           onChange={(e) => setBasal(e.target.value)}
+        />
+      </section>
+
+      <section className="settings-card">
+        <h2 className="settings-title">Cópia de segurança</h2>
+        <p className="settings-help">
+          O Safari pode apagar os dados se limpares a cache. Exporta regularmente e guarda o ficheiro em Ficheiros/iCloud para poderes restaurar.
+        </p>
+        <div className="backup-actions">
+          <button type="button" className="btn btn-primary" onClick={() => void onExportBackup()}>
+            Exportar
+          </button>
+          <button
+            type="button"
+            className="btn btn-ghost"
+            onClick={() => backupInputRef.current?.click()}
+          >
+            Importar
+          </button>
+        </div>
+        <input
+          ref={backupInputRef}
+          className="backup-file-input"
+          type="file"
+          accept=".json,application/json"
+          onChange={(event) => {
+            const file = event.target.files?.[0]
+            event.target.value = ''
+            if (file) void onImportBackup(file)
+          }}
         />
       </section>
 

@@ -20,6 +20,8 @@ function App() {
     updateEntry,
     removeEntry,
     importEntries,
+    exportBackup,
+    importBackup,
     frequentFoods,
     recentFoods,
     setDayBurned,
@@ -53,6 +55,29 @@ function App() {
   function showToast(msg: string) {
     setToast(msg)
     window.setTimeout(() => setToast(''), 2200)
+  }
+
+  async function handleExportBackup() {
+    try {
+      await exportBackup()
+      showToast('Cópia exportada — guarda-a em Ficheiros')
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') return
+      showToast(error instanceof Error ? error.message : 'Não foi possível exportar')
+    }
+  }
+
+  async function handleImportBackup(file: File) {
+    try {
+      const restored = await importBackup(file)
+      if (restored) {
+        setSelectedDate(null)
+        setView('hoje')
+        showToast('Cópia restaurada')
+      }
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : 'Não foi possível importar')
+    }
   }
 
   async function handleDelete(entry: FoodEntry) {
@@ -171,6 +196,8 @@ function App() {
               updateSettings(next)
               showToast('Definições guardadas')
             }}
+            onExportBackup={handleExportBackup}
+            onImportBackup={handleImportBackup}
           />
         )}
       </main>
