@@ -3,7 +3,6 @@ import { BottomNav } from './components/BottomNav'
 import { DayView } from './components/DayView'
 import { EntryForm } from './components/EntryForm'
 import { History } from './components/History'
-import { ImportKeep } from './components/ImportKeep'
 import { QuickAdd } from './components/QuickAdd'
 import { Settings } from './components/Settings'
 import { useEntries } from './hooks/useEntries'
@@ -19,7 +18,6 @@ function App() {
     addEntry,
     updateEntry,
     removeEntry,
-    importEntries,
     exportBackup,
     importBackup,
     frequentFoods,
@@ -179,15 +177,6 @@ function App() {
           </div>
         )}
 
-        {view === 'importar' && (
-          <ImportKeep
-            onImport={importEntries}
-            onDone={() => {
-              showToast('Importação concluída')
-              setView('hoje')
-            }}
-          />
-        )}
 
         {view === 'definicoes' && (
           <Settings

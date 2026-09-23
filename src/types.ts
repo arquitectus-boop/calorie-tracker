@@ -8,7 +8,7 @@ export interface FoodEntry {
   updatedAt: number
 }
 
-export type View = 'hoje' | 'historico' | 'adicionar' | 'importar' | 'definicoes'
+export type View = 'hoje' | 'historico' | 'adicionar' | 'definicoes'
 
 export type AppThemeId = 'verde' | 'azul' | 'roxo' | 'laranja' | 'vermelho' | 'cinza'
 

@@ -385,7 +385,7 @@
   height: var(--nav-h);
   padding: 4px 4px var(--safe-bottom);
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 2px;
   background: rgba(10, 31, 18, 0.92);
   backdrop-filter: blur(16px);
