@@ -39,7 +39,7 @@ export function EntryList({ entries, photoByKey = {}, onEdit, onDelete }: Props)
           const photoUrl = photoByKey[foodKey(e.name, e.kcal, portionOf(e))]
           return (
             <li key={e.id} className="entry-item">
-              {photoUrl && (
+              {photoUrl ? (
                 <button
                   type="button"
                   className="entry-thumb-btn"
@@ -48,6 +48,10 @@ export function EntryList({ entries, photoByKey = {}, onEdit, onDelete }: Props)
                 >
                   <img src={photoUrl} alt="" className="entry-thumb" />
                 </button>
+              ) : (
+                <span className="entry-thumb-btn" aria-hidden>
+                  <span className="entry-thumb entry-thumb-empty">🍽</span>
+                </span>
               )}
               <button
                 type="button"

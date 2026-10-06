@@ -35,7 +35,12 @@ export function FoodPhotoField({
           </button>
         </div>
       ) : (
-        <p className="food-photo-empty">Sem foto (opcional)</p>
+        <div className="food-photo-preview-wrap">
+          <span className="food-photo-preview food-photo-preview-empty" aria-hidden>
+            🍽
+          </span>
+          <p className="food-photo-empty">Sem foto (opcional)</p>
+        </div>
       )}
       <div className="food-photo-actions">
         <button

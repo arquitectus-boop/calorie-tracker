@@ -304,6 +304,15 @@
   display: block;
 }
 
+/* Same plate placeholder as Lista (.food-list-thumb-empty) */
+.entry-thumb-empty {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  opacity: 0.55;
+}
+
 .entry-main {
   flex: 1;
   display: flex;
@@ -1273,6 +1282,14 @@ button.food-list-thumb-btn:active {
   object-fit: cover;
   border: 1px solid var(--border);
   background: rgba(0, 0, 0, 0.25);
+}
+
+.food-photo-preview-empty {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  opacity: 0.55;
 }
 
 .food-photo-empty {
