@@ -309,8 +309,9 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.1rem;
-  opacity: 0.55;
+  font-size: 1.25rem;
+  color: var(--text-muted);
+  opacity: 0.75;
 }
 
 .entry-main {
@@ -1259,8 +1260,14 @@ button.food-list-thumb-btn:active {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.1rem;
-  opacity: 0.55;
+  font-size: 1.25rem;
+  color: var(--text-muted);
+  opacity: 0.75;
+}
+
+.food-photo-placeholder-icon {
+  display: block;
+  flex-shrink: 0;
 }
 
 .food-photo-block {
@@ -1288,8 +1295,9 @@ button.food-list-thumb-btn:active {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 2rem;
-  opacity: 0.55;
+  font-size: 2.25rem;
+  color: var(--text-muted);
+  opacity: 0.75;
 }
 
 .food-photo-empty {

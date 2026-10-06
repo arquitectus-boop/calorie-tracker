@@ -1,4 +1,5 @@
 import { useRef } from 'react'
+import { FoodPhotoPlaceholder } from './FoodPhotoPlaceholder'
 
 interface Props {
   previewUrl?: string
@@ -36,9 +37,7 @@ export function FoodPhotoField({
         </div>
       ) : (
         <div className="food-photo-preview-wrap">
-          <span className="food-photo-preview food-photo-preview-empty" aria-hidden>
-            🍽
-          </span>
+          <FoodPhotoPlaceholder className="food-photo-preview food-photo-preview-empty" />
           <p className="food-photo-empty">Sem foto (opcional)</p>
         </div>
       )}

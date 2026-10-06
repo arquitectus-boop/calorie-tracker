@@ -5,6 +5,7 @@ import { kcalUnitLabel } from '../lib/portion'
 import type { PhotoChange } from '../hooks/useEntries'
 import type { PortionType } from '../types'
 import { FoodPhotoField } from './FoodPhotoField'
+import { FoodPhotoPlaceholder } from './FoodPhotoPlaceholder'
 import { PhotoLightbox } from './PhotoLightbox'
 import { PortionToggle } from './PortionToggle'
 
@@ -398,7 +399,7 @@ export function FoodList({
                   </button>
                 ) : (
                   <span className="food-list-thumb-btn" aria-hidden>
-                    <span className="food-list-thumb food-list-thumb-empty">🍽</span>
+                    <FoodPhotoPlaceholder className="food-list-thumb food-list-thumb-empty" />
                   </span>
                 )}
                 <button

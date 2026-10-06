@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react'
 import type { FoodEntry } from '../types'
 import { foodKey } from '../lib/foodCatalog'
+import { FoodPhotoPlaceholder } from './FoodPhotoPlaceholder'
 import { PhotoLightbox } from './PhotoLightbox'
 import { entryLineTotal, entryPortionLabel, formatNumber, portionOf } from '../lib/portion'
 
@@ -50,7 +51,7 @@ export function EntryList({ entries, photoByKey = {}, onEdit, onDelete }: Props)
                 </button>
               ) : (
                 <span className="entry-thumb-btn" aria-hidden>
-                  <span className="entry-thumb entry-thumb-empty">🍽</span>
+                  <FoodPhotoPlaceholder className="entry-thumb entry-thumb-empty" />
                 </span>
               )}
               <button
