@@ -1,6 +1,7 @@
 import type { AppSettings, FoodEntry } from '../types'
 import { loadSettings, saveSettings } from './settings'
 import { isThemeId } from './theme'
+import { isPortionType } from './portion'
 import {
   loadBurnedMap,
   loadEntries,
@@ -42,6 +43,8 @@ function isFoodEntry(value: unknown): value is FoodEntry {
     typeof value.name === 'string' &&
     isFiniteNumber(value.quantity) &&
     value.quantity > 0 &&
+    // Optional: older backups have no portionType (→ 'unit')
+    (value.portionType === undefined || isPortionType(value.portionType)) &&
     isFiniteNumber(value.createdAt) &&
     isFiniteNumber(value.updatedAt)
   )

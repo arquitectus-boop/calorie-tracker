@@ -1,13 +1,17 @@
+import type { PortionType } from '../types'
+import { kcalUnitLabel } from '../lib/portion'
+
 interface FoodChip {
   name: string
   kcal: number
+  portionType: PortionType
   count?: number
 }
 
 interface Props {
   recent: FoodChip[]
   frequent: FoodChip[]
-  onPick: (food: { name: string; kcal: number }) => void
+  onPick: (food: { name: string; kcal: number; portionType: PortionType }) => void
 }
 
 export function QuickAdd({ recent, frequent, onPick }: Props) {
@@ -23,12 +27,12 @@ export function QuickAdd({ recent, frequent, onPick }: Props) {
           <div className="chip-row">
             {recent.map((f) => (
               <button
-                key={`r-${f.name}-${f.kcal}`}
+                key={`r-${f.name}-${f.kcal}-${f.portionType}`}
                 type="button"
                 className="chip"
-                onClick={() => onPick(f)}
+                onClick={() => onPick({ name: f.name, kcal: f.kcal, portionType: f.portionType })}
               >
-                <span className="chip-kcal">{f.kcal}<span className="chip-kcal-unit"> kcal</span></span>
+                <span className="chip-kcal">{f.kcal}<span className="chip-kcal-unit"> {kcalUnitLabel(f.portionType)}</span></span>
                 <span className="chip-name">{f.name}</span>
               </button>
             ))}
@@ -41,12 +45,12 @@ export function QuickAdd({ recent, frequent, onPick }: Props) {
           <div className="chip-row">
             {frequent.slice(0, 10).map((f) => (
               <button
-                key={`f-${f.name}-${f.kcal}`}
+                key={`f-${f.name}-${f.kcal}-${f.portionType}`}
                 type="button"
                 className="chip"
-                onClick={() => onPick(f)}
+                onClick={() => onPick({ name: f.name, kcal: f.kcal, portionType: f.portionType })}
               >
-                <span className="chip-kcal">{f.kcal}<span className="chip-kcal-unit"> kcal</span></span>
+                <span className="chip-kcal">{f.kcal}<span className="chip-kcal-unit"> {kcalUnitLabel(f.portionType)}</span></span>
                 <span className="chip-name">{f.name}</span>
               </button>
             ))}

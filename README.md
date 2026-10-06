@@ -49,6 +49,7 @@ A app abre sem barra do Safari, com ícone próprio e tema verde escuro.
 ## Funcionalidades
 
 - Adicionar registo: kcal, alimento, quantidade (predefinida 1), data (hoje por omissão)
+- Dois modos de porção: **Unidade** (kcal × quantidade) ou **Por 100 g** (kcal/100 g × gramas ÷ 100), com pré-visualização do total. Registos antigos sem `portionType` contam como unidade
 - Vista do dia com total automático
 - Histórico de dias anteriores com totais
 - Editar e apagar registos

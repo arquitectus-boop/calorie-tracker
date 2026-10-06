@@ -8,7 +8,7 @@ import { QuickAdd } from './components/QuickAdd'
 import { Settings } from './components/Settings'
 import { useEntries } from './hooks/useEntries'
 import { todayISO } from './lib/dates'
-import type { FoodEntry, View } from './types'
+import type { FoodEntry, PortionType, View } from './types'
 import './App.css'
 
 function App() {
@@ -38,6 +38,7 @@ function App() {
   const [quickPrefill, setQuickPrefill] = useState<{
     name: string
     kcal: number
+    portionType: PortionType
   } | null>(null)
   const [toast, setToast] = useState('')
 
@@ -90,7 +91,7 @@ function App() {
     showToast('Registo apagado')
   }
 
-  function goAdd(prefill?: { name: string; kcal: number }) {
+  function goAdd(prefill?: { name: string; kcal: number; portionType: PortionType }) {
     setEditing(null)
     setQuickPrefill(prefill ?? null)
     setView('adicionar')
@@ -143,12 +144,16 @@ function App() {
               {editing ? 'Editar registo' : 'Adicionar'}
             </h1>
             <EntryForm
-              key={editing?.id ?? `new-${quickPrefill?.name ?? 'blank'}`}
+              key={
+                editing?.id ??
+                `new-${quickPrefill?.name ?? 'blank'}-${quickPrefill?.portionType ?? 'unit'}`
+              }
               initial={
                 editing ?? {
                   date: selectedDate ?? todayISO(),
                   name: quickPrefill?.name,
                   kcal: quickPrefill?.kcal,
+                  portionType: quickPrefill?.portionType ?? 'unit',
                   quantity: 1,
                 }
               }

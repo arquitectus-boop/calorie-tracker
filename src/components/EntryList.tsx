@@ -1,5 +1,5 @@
 import type { FoodEntry } from '../types'
-import { entryLineTotal } from '../hooks/useEntries'
+import { entryLineTotal, entryPortionLabel, formatNumber } from '../lib/portion'
 
 interface Props {
   entries: FoodEntry[]
@@ -20,6 +20,7 @@ export function EntryList({ entries, onEdit, onDelete }: Props) {
     <ul className="entry-list">
       {entries.map((e) => {
         const line = entryLineTotal(e)
+        const portion = entryPortionLabel(e)
         return (
           <li key={e.id} className="entry-item">
             <button
@@ -29,16 +30,12 @@ export function EntryList({ entries, onEdit, onDelete }: Props) {
               aria-label={`Editar ${e.name}`}
             >
               <span className="entry-kcal">
-                {line}
+                {formatNumber(line)}
                 <span className="entry-kcal-unit"> kcal</span>
               </span>
               <span className="entry-body">
                 <span className="entry-name">{e.name}</span>
-                {e.quantity !== 1 && (
-                  <span className="entry-qty">
-                    {e.quantity}× {e.kcal} kcal
-                  </span>
-                )}
+                {portion && <span className="entry-qty">{portion}</span>}
               </span>
             </button>
             <button

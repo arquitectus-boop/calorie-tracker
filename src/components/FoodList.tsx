@@ -1,5 +1,8 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import { foodKey, type FoodListItem } from '../lib/foodCatalog'
+import { kcalUnitLabel } from '../lib/portion'
+import type { PortionType } from '../types'
+import { PortionToggle } from './PortionToggle'
 
 export type { FoodListItem }
 
@@ -49,10 +52,16 @@ interface EditorProps {
   title: string
   initialName?: string
   initialKcal?: number
+  initialPortion?: PortionType
   historyCount?: number
   submitLabel: string
-  validate: (name: string, kcal: number) => string | null
-  onSubmit: (name: string, kcal: number, applyToHistory: boolean) => Promise<void> | void
+  validate: (name: string, kcal: number, portionType: PortionType) => string | null
+  onSubmit: (
+    name: string,
+    kcal: number,
+    portionType: PortionType,
+    applyToHistory: boolean,
+  ) => Promise<void> | void
   onCancel: () => void
 }
 
@@ -60,6 +69,7 @@ function FoodEditor({
   title,
   initialName = '',
   initialKcal,
+  initialPortion = 'unit',
   historyCount = 0,
   submitLabel,
   validate,
@@ -68,7 +78,9 @@ function FoodEditor({
 }: EditorProps) {
   const [name, setName] = useState(initialName)
   const [kcal, setKcal] = useState(initialKcal !== undefined ? String(initialKcal) : '')
+  const [portionType, setPortionType] = useState<PortionType>(initialPortion)
   const [applyToHistory, setApplyToHistory] = useState(false)
+  const portionChanged = portionType !== initialPortion
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   const ref = useRef<HTMLFormElement>(null)
@@ -83,11 +95,11 @@ function FoodEditor({
     const k = parseInt(kcal, 10)
     if (!clean) return setError('Indica o nome do alimento.')
     if (!Number.isFinite(k) || k <= 0) return setError('Indica as calorias (número positivo).')
-    const problem = validate(clean, k)
+    const problem = validate(clean, k, portionType)
     if (problem) return setError(problem)
     setBusy(true)
     try {
-      await onSubmit(clean, k, applyToHistory)
+      await onSubmit(clean, k, portionType, applyToHistory && !portionChanged)
     } finally {
       setBusy(false)
     }
@@ -96,6 +108,7 @@ function FoodEditor({
   return (
     <form ref={ref} className="food-editor" onSubmit={handleSubmit}>
       <h2 className="food-editor-title">{title}</h2>
+      <PortionToggle value={portionType} onChange={setPortionType} />
       <div className="food-editor-fields">
         <label className="field">
           <span>Alimento</span>
@@ -109,17 +122,22 @@ function FoodEditor({
           />
         </label>
         <label className="field">
-          <span>kcal</span>
+          <span>{portionType === 'per100g' ? 'kcal/100 g' : 'kcal/un'}</span>
           <input
             inputMode="numeric"
             pattern="[0-9]*"
             value={kcal}
             onChange={(e) => setKcal(e.target.value)}
-            placeholder="ex. 79"
+            placeholder={portionType === 'per100g' ? 'ex. 50' : 'ex. 79'}
           />
         </label>
       </div>
-      {historyCount > 0 && (
+      {historyCount > 0 && portionChanged && (
+        <p className="food-editor-note">
+          Ao mudar entre unidade e 100 g, os registos anteriores ficam como estão.
+        </p>
+      )}
+      {historyCount > 0 && !portionChanged && (
         <label className="food-editor-check">
           <input
             type="checkbox"
@@ -149,12 +167,13 @@ function FoodEditor({
 
 interface Props {
   foods: FoodListItem[]
-  onPick: (food: { name: string; kcal: number }) => void
-  onAdd: (name: string, kcal: number) => void
+  onPick: (food: { name: string; kcal: number; portionType: PortionType }) => void
+  onAdd: (name: string, kcal: number, portionType: PortionType) => void
   onEdit: (
     item: FoodListItem,
     name: string,
     kcal: number,
+    portionType: PortionType,
     applyToHistory: boolean,
   ) => Promise<number>
   onRemove: (item: FoodListItem) => void
@@ -182,8 +201,13 @@ export function FoodList({ foods, onPick, onAdd, onEdit, onRemove, onToast }: Pr
     return sortFoods(filtered, sortMode)
   }, [foods, query, sortMode])
 
-  function findDuplicate(name: string, kcal: number, except?: FoodListItem) {
-    const key = foodKey(name, kcal)
+  function findDuplicate(
+    name: string,
+    kcal: number,
+    portionType: PortionType,
+    except?: FoodListItem,
+  ) {
+    const key = foodKey(name, kcal, portionType)
     return foods.find((f) => f !== except && f.key === key)
   }
 
@@ -192,7 +216,7 @@ export function FoodList({ foods, onPick, onAdd, onEdit, onRemove, onToast }: Pr
       item.count > 0
         ? `\n\nOs ${item.count} ${item.count === 1 ? 'registo' : 'registos'} nos dias anteriores ficam intactos.`
         : ''
-    const ok = window.confirm(`Remover «${item.name}» (${item.kcal} kcal) da Lista?${extra}`)
+    const ok = window.confirm(`Remover «${item.name}» (${item.kcal} ${kcalUnitLabel(item.portionType)}) da Lista?${extra}`)
     if (!ok) return
     if (editingKey === item.key) setEditingKey(null)
     onRemove(item)
@@ -210,12 +234,12 @@ export function FoodList({ foods, onPick, onAdd, onEdit, onRemove, onToast }: Pr
         <FoodEditor
           title="Novo alimento"
           submitLabel="Guardar na Lista"
-          validate={(n, k) =>
-            findDuplicate(n, k) ? 'Esse alimento já está na Lista.' : null
+          validate={(n, k, pt) =>
+            findDuplicate(n, k, pt) ? 'Esse alimento já está na Lista.' : null
           }
           onCancel={() => setAdding(false)}
-          onSubmit={(n, k) => {
-            onAdd(n, k)
+          onSubmit={(n, k, pt) => {
+            onAdd(n, k, pt)
             setAdding(false)
             onToast('Adicionado à Lista')
           }}
@@ -279,13 +303,14 @@ export function FoodList({ foods, onPick, onAdd, onEdit, onRemove, onToast }: Pr
                   title="Editar alimento"
                   initialName={f.name}
                   initialKcal={f.kcal}
+                  initialPortion={f.portionType}
                   historyCount={f.count}
                   submitLabel="Guardar"
                   validate={() => null}
                   onCancel={() => setEditingKey(null)}
-                  onSubmit={async (n, k, apply) => {
-                    const merged = findDuplicate(n, k, f)
-                    const changed = await onEdit(f, n, k, apply)
+                  onSubmit={async (n, k, pt, apply) => {
+                    const merged = findDuplicate(n, k, pt, f)
+                    const changed = await onEdit(f, n, k, pt, apply)
                     setEditingKey(null)
                     onToast(
                       changed > 0
@@ -302,8 +327,10 @@ export function FoodList({ foods, onPick, onAdd, onEdit, onRemove, onToast }: Pr
                 <button
                   type="button"
                   className="food-list-item"
-                  onClick={() => onPick({ name: f.name, kcal: f.kcal })}
-                  aria-label={`Adicionar ${f.name}, ${f.kcal} kcal`}
+                  onClick={() =>
+                    onPick({ name: f.name, kcal: f.kcal, portionType: f.portionType })
+                  }
+                  aria-label={`Adicionar ${f.name}, ${f.kcal} ${kcalUnitLabel(f.portionType)}`}
                 >
                   <div className="food-list-left">
                     <span className="food-list-name">{f.name}</span>
@@ -311,7 +338,7 @@ export function FoodList({ foods, onPick, onAdd, onEdit, onRemove, onToast }: Pr
                   </div>
                   <span className="food-list-kcal">
                     {f.kcal}
-                    <span className="food-list-kcal-unit"> kcal</span>
+                    <span className="food-list-kcal-unit"> {kcalUnitLabel(f.portionType)}</span>
                   </span>
                 </button>
                 <button

@@ -1,9 +1,20 @@
+/**
+ * How a food's kcal relate to its quantity.
+ *  - 'unit':    kcal per unit, quantity = number of units (default, legacy data)
+ *  - 'per100g': kcal per 100 g, quantity = grams
+ */
+export type PortionType = 'unit' | 'per100g'
+
 export interface FoodEntry {
   id: string
   date: string // YYYY-MM-DD
+  /** kcal per unit ('unit') or per 100 g ('per100g') */
   kcal: number
   name: string
+  /** Number of units ('unit') or grams ('per100g') */
   quantity: number
+  /** Optional; missing means 'unit' (older data) */
+  portionType?: PortionType
   createdAt: number
   updatedAt: number
 }

@@ -1,4 +1,5 @@
-import type { FoodEntry } from '../types'
+import type { FoodEntry, PortionType } from '../types'
+import { isPortionType, portionOf } from './portion'
 
 /**
  * Lightweight food catalog for the Lista tab, stored in localStorage.
@@ -16,6 +17,8 @@ export interface CatalogFood {
   id: string
   name: string
   kcal: number
+  /** Optional; missing means 'unit' (older catalogs) */
+  portionType?: PortionType
   /** Older history keys (name|kcal) merged into this food, e.g. after an edit */
   aliases: string[]
   createdAt: number
@@ -36,6 +39,7 @@ export interface FoodListItem {
   keys: string[]
   name: string
   kcal: number
+  portionType: PortionType
   count: number
   lastUsed: number
   catalogId?: string
@@ -47,8 +51,17 @@ export function emptyCatalog(): FoodCatalog {
   return { version: 1, foods: [], hidden: {} }
 }
 
-export function foodKey(name: string, kcal: number): string {
-  return `${name.trim().toLowerCase()}|${Math.round(kcal)}`
+/**
+ * Food identity key. Unit foods keep the legacy `name|kcal` format so older
+ * aliases / hidden keys stay valid; per-100 g foods get a `|100g` suffix.
+ */
+export function foodKey(
+  name: string,
+  kcal: number,
+  portionType: PortionType = 'unit',
+): string {
+  const base = `${name.trim().toLowerCase()}|${Math.round(kcal)}`
+  return portionType === 'per100g' ? `${base}|100g` : base
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -64,6 +77,7 @@ function isCatalogFood(value: unknown): value is CatalogFood {
     typeof value.kcal === 'number' &&
     Number.isFinite(value.kcal) &&
     value.kcal >= 0 &&
+    (value.portionType === undefined || isPortionType(value.portionType)) &&
     Array.isArray(value.aliases) &&
     value.aliases.every((a) => typeof a === 'string') &&
     typeof value.createdAt === 'number' &&
@@ -104,6 +118,7 @@ export function saveCatalog(catalog: FoodCatalog): void {
 interface HistoryAgg {
   name: string
   kcal: number
+  portionType: PortionType
   count: number
   lastUsed: number
   nameTs: number
@@ -112,7 +127,8 @@ interface HistoryAgg {
 function aggregateHistory(entries: FoodEntry[]): Map<string, HistoryAgg> {
   const map = new Map<string, HistoryAgg>()
   for (const e of entries) {
-    const key = foodKey(e.name, e.kcal)
+    const portionType = portionOf(e)
+    const key = foodKey(e.name, e.kcal, portionType)
     const cur = map.get(key)
     if (cur) {
       cur.count += 1
@@ -125,6 +141,7 @@ function aggregateHistory(entries: FoodEntry[]): Map<string, HistoryAgg> {
       map.set(key, {
         name: e.name.trim(),
         kcal: e.kcal,
+        portionType,
         count: 1,
         lastUsed: e.createdAt,
         nameTs: e.createdAt,
@@ -144,7 +161,7 @@ export function mergeFoods(
   const result: FoodListItem[] = []
 
   for (const food of catalog.foods) {
-    const own = foodKey(food.name, food.kcal)
+    const own = foodKey(food.name, food.kcal, portionOf(food))
     const keys = [own, ...food.aliases.filter((a) => a !== own)].filter(
       (k) => !consumed.has(k),
     )
@@ -164,6 +181,7 @@ export function mergeFoods(
       keys,
       name: food.name,
       kcal: food.kcal,
+      portionType: portionOf(food),
       count,
       lastUsed,
       catalogId: food.id,
@@ -179,6 +197,7 @@ export function mergeFoods(
       keys: [key],
       name: h.name,
       kcal: h.kcal,
+      portionType: h.portionType,
       count: h.count,
       lastUsed: h.lastUsed,
     })
@@ -197,14 +216,16 @@ export function addCatalogFood(
   catalog: FoodCatalog,
   name: string,
   kcal: number,
+  portionType: PortionType = 'unit',
 ): FoodCatalog {
   const now = Date.now()
   const clean = name.trim()
-  const key = foodKey(clean, kcal)
+  const key = foodKey(clean, kcal, portionType)
   const food: CatalogFood = {
     id: crypto.randomUUID(),
     name: clean,
     kcal: Math.round(kcal),
+    portionType,
     aliases: [],
     createdAt: now,
     updatedAt: now,
@@ -222,11 +243,12 @@ export function editCatalogFood(
   item: FoodListItem,
   name: string,
   kcal: number,
+  portionType: PortionType = item.portionType,
 ): FoodCatalog {
   const now = Date.now()
   const clean = name.trim()
   const rounded = Math.round(kcal)
-  const newKey = foodKey(clean, rounded)
+  const newKey = foodKey(clean, rounded, portionType)
 
   // Keys absorbed by this food: everything the item already covered.
   const absorbed = new Set<string>(item.keys)
@@ -235,7 +257,7 @@ export function editCatalogFood(
   const others: CatalogFood[] = []
   for (const f of catalog.foods) {
     if (f.id === item.catalogId) continue
-    const fKeys = [foodKey(f.name, f.kcal), ...f.aliases]
+    const fKeys = [foodKey(f.name, f.kcal, portionOf(f)), ...f.aliases]
     if (fKeys.includes(newKey)) {
       for (const k of fKeys) absorbed.add(k)
     } else {
@@ -249,6 +271,7 @@ export function editCatalogFood(
     id: existing?.id ?? crypto.randomUUID(),
     name: clean,
     kcal: rounded,
+    portionType,
     aliases: [...absorbed],
     createdAt: existing?.createdAt ?? now,
     updatedAt: now,

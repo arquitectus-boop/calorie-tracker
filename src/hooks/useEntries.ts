@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import type { AppSettings, DaySummary, FoodEntry } from '../types'
+import type { AppSettings, DaySummary, FoodEntry, PortionType } from '../types'
+import { entryLineTotal, portionOf } from '../lib/portion'
 import {
   deleteEntry as deleteEntryStorage,
   loadBurnedMap,
@@ -34,9 +35,7 @@ function sortEntries(a: FoodEntry, b: FoodEntry) {
   return b.createdAt - a.createdAt
 }
 
-export function entryLineTotal(e: FoodEntry): number {
-  return e.kcal * e.quantity
-}
+export { entryLineTotal }
 
 export function useEntries() {
   const [entries, setEntries] = useState<FoodEntry[]>([])
@@ -120,6 +119,7 @@ export function useEntries() {
       kcal: number
       name: string
       quantity: number
+      portionType: PortionType
     }) => {
       const now = Date.now()
       const entry: FoodEntry = {
@@ -128,6 +128,7 @@ export function useEntries() {
         kcal: partial.kcal,
         name: partial.name.trim(),
         quantity: partial.quantity,
+        portionType: partial.portionType,
         createdAt: now,
         updatedAt: now,
       }
@@ -207,8 +208,8 @@ export function useEntries() {
   )
 
   const addFoodToList = useCallback(
-    (name: string, kcal: number) => {
-      commitCatalog(addCatalogFood(catalog, name, kcal))
+    (name: string, kcal: number, portionType: PortionType) => {
+      commitCatalog(addCatalogFood(catalog, name, kcal, portionType))
     },
     [catalog, commitCatalog],
   )
@@ -218,14 +219,21 @@ export function useEntries() {
       item: FoodListItem,
       name: string,
       kcal: number,
+      portionType: PortionType,
       applyToHistory: boolean,
     ) => {
-      commitCatalog(editCatalogFood(catalog, item, name, kcal))
-      if (!applyToHistory) return 0
+      commitCatalog(editCatalogFood(catalog, item, name, kcal, portionType))
+      // Changing unit ↔ per 100 g would reinterpret logged quantities, so the
+      // history is only updated when the portion type stays the same.
+      if (!applyToHistory || portionType !== item.portionType) return 0
       const keys = new Set(item.keys)
       const now = Date.now()
       const changed = entries
-        .filter((e) => keys.has(foodKey(e.name, e.kcal)))
+        .filter(
+          (e) =>
+            portionOf(e) === portionType &&
+            keys.has(foodKey(e.name, e.kcal, portionOf(e))),
+        )
         .map((e) => ({ ...e, name: name.trim(), kcal: Math.round(kcal), updatedAt: now }))
       if (changed.length === 0) return 0
       await saveEntriesBulk(changed)
@@ -253,12 +261,13 @@ export function useEntries() {
 
   const recentFoods = useMemo(() => {
     const seen = new Set<string>()
-    const result: { name: string; kcal: number }[] = []
+    const result: { name: string; kcal: number; portionType: PortionType }[] = []
     for (const e of entries) {
-      const key = `${e.name.toLowerCase()}|${e.kcal}`
+      const portionType = portionOf(e)
+      const key = foodKey(e.name, e.kcal, portionType)
       if (seen.has(key)) continue
       seen.add(key)
-      result.push({ name: e.name, kcal: e.kcal })
+      result.push({ name: e.name, kcal: e.kcal, portionType })
       if (result.length >= 12) break
     }
     return result

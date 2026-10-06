@@ -1,6 +1,8 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { todayISO } from '../lib/dates'
-import type { FoodEntry } from '../types'
+import { formatNumber, lineTotal, portionOf } from '../lib/portion'
+import type { FoodEntry, PortionType } from '../types'
+import { PortionToggle } from './PortionToggle'
 
 interface Props {
   initial?: Partial<FoodEntry>
@@ -10,46 +12,79 @@ interface Props {
     kcal: number
     name: string
     quantity: number
+    portionType: PortionType
   }) => void | Promise<void>
   onCancel?: () => void
 }
 
+function initialQuantity(initial: Partial<FoodEntry> | undefined, portionType: PortionType) {
+  if (initial?.quantity !== undefined) {
+    // A new per-100 g pick arrives with the default quantity 1 → ask for grams.
+    if (portionType === 'per100g' && !initial.id && initial.quantity === 1) return ''
+    return String(initial.quantity)
+  }
+  return portionType === 'per100g' ? '' : '1'
+}
+
+function parseQuantity(value: string): number {
+  return parseFloat(value.replace(',', '.'))
+}
+
 export function EntryForm({ initial, submitLabel, onSubmit, onCancel }: Props) {
+  const [portionType, setPortionType] = useState<PortionType>(portionOf(initial))
   const [date, setDate] = useState(initial?.date ?? todayISO())
   const [kcal, setKcal] = useState(
     initial?.kcal !== undefined ? String(initial.kcal) : '',
   )
   const [name, setName] = useState(initial?.name ?? '')
-  const [quantity, setQuantity] = useState(
-    initial?.quantity !== undefined ? String(initial.quantity) : '1',
+  const [quantity, setQuantity] = useState(() =>
+    initialQuantity(initial, portionOf(initial)),
   )
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
 
   useEffect(() => {
+    const pt = portionOf(initial)
+    setPortionType(pt)
     setDate(initial?.date ?? todayISO())
     setKcal(initial?.kcal !== undefined ? String(initial.kcal) : '')
     setName(initial?.name ?? '')
-    setQuantity(
-      initial?.quantity !== undefined ? String(initial.quantity) : '1',
-    )
+    setQuantity(initialQuantity(initial, pt))
   }, [initial])
+
+  const per100g = portionType === 'per100g'
+  const k = parseInt(kcal, 10)
+  const q = parseQuantity(quantity)
+  const preview =
+    Number.isFinite(k) && k > 0 && Number.isFinite(q) && q > 0
+      ? lineTotal(k, q, portionType)
+      : null
+
+  function changePortion(next: PortionType) {
+    if (next === portionType) return
+    setPortionType(next)
+    // Swap sensible defaults: units ↔ grams are not interchangeable.
+    if (next === 'per100g' && (quantity === '1' || quantity === '')) setQuantity('')
+    else if (next === 'unit' && (quantity === '' || q >= 20)) setQuantity('1')
+  }
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
     setError('')
-    const k = parseInt(kcal, 10)
-    const q = parseFloat(quantity.replace(',', '.'))
     if (!name.trim()) {
       setError('Indica o nome do alimento.')
       return
     }
     if (!Number.isFinite(k) || k <= 0) {
-      setError('Indica as calorias (número positivo).')
+      setError(
+        per100g
+          ? 'Indica as calorias por 100 g (número positivo).'
+          : 'Indica as calorias (número positivo).',
+      )
       return
     }
     if (!Number.isFinite(q) || q <= 0) {
-      setError('A quantidade deve ser positiva.')
+      setError(per100g ? 'Indica os gramas (número positivo).' : 'A quantidade deve ser positiva.')
       return
     }
     if (!date) {
@@ -63,23 +98,28 @@ export function EntryForm({ initial, submitLabel, onSubmit, onCancel }: Props) {
         kcal: k,
         name: name.trim(),
         quantity: q,
+        portionType,
       })
     } finally {
       setBusy(false)
     }
   }
 
+  const prefilled = Boolean(initial?.name && initial?.kcal !== undefined)
+
   return (
     <form className="entry-form" onSubmit={handleSubmit}>
+      <PortionToggle value={portionType} onChange={changePortion} />
+
       <label className="field">
-        <span>Calorias (kcal)</span>
+        <span>{per100g ? 'kcal por 100 g' : 'kcal'}</span>
         <input
           inputMode="numeric"
           pattern="[0-9]*"
           value={kcal}
           onChange={(e) => setKcal(e.target.value)}
-          placeholder="ex. 126"
-          autoFocus
+          placeholder={per100g ? 'ex. 50' : 'ex. 126'}
+          autoFocus={!(prefilled && per100g)}
           required
         />
       </label>
@@ -90,7 +130,7 @@ export function EntryForm({ initial, submitLabel, onSubmit, onCancel }: Props) {
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="ex. pão pequeno branco"
+          placeholder={per100g ? 'ex. pepino' : 'ex. pão pequeno branco'}
           required
           autoComplete="off"
         />
@@ -98,12 +138,13 @@ export function EntryForm({ initial, submitLabel, onSubmit, onCancel }: Props) {
 
       <div className="field-row">
         <label className="field">
-          <span>Quantidade</span>
+          <span>{per100g ? 'gramas' : 'quantidade'}</span>
           <input
             inputMode="decimal"
             value={quantity}
             onChange={(e) => setQuantity(e.target.value)}
-            placeholder="1"
+            placeholder={per100g ? 'ex. 120' : '1'}
+            autoFocus={prefilled && per100g}
           />
         </label>
         <label className="field">
@@ -116,6 +157,19 @@ export function EntryForm({ initial, submitLabel, onSubmit, onCancel }: Props) {
           />
         </label>
       </div>
+
+      <p className="line-preview" aria-live="polite">
+        Total: <strong>{preview !== null ? formatNumber(preview) : '—'}</strong> kcal
+        {preview !== null && (
+          <span className="line-preview-detail">
+            {per100g
+              ? ` (${k} kcal/100 g × ${formatNumber(q)} g)`
+              : q !== 1
+                ? ` (${formatNumber(q)} × ${k} kcal)`
+                : ''}
+          </span>
+        )}
+      </p>
 
       {error && <p className="form-error">{error}</p>}
 
