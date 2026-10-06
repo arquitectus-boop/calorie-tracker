@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import { foodKey, type FoodListItem } from '../lib/foodCatalog'
 import { compressImageFile } from '../lib/photo'
 import { kcalUnitLabel } from '../lib/portion'
 import type { PhotoChange } from '../hooks/useEntries'
 import type { PortionType } from '../types'
+import { PhotoLightbox } from './PhotoLightbox'
 import { PortionToggle } from './PortionToggle'
 
 export type { FoodListItem }
@@ -299,6 +300,8 @@ export function FoodList({
   const [sortMode, setSortMode] = useState<SortMode>(() => loadSort())
   const [adding, setAdding] = useState(false)
   const [editingKey, setEditingKey] = useState<string | null>(null)
+  const [lightbox, setLightbox] = useState<{ url: string; name: string } | null>(null)
+  const closeLightbox = useCallback(() => setLightbox(null), [])
 
   function changeSort(mode: SortMode) {
     setSortMode(mode)
@@ -439,6 +442,23 @@ export function FoodList({
               </li>
             ) : (
               <li key={f.key} className="food-list-row">
+                {f.photoId && photoUrls[f.photoId] ? (
+                  <button
+                    type="button"
+                    className="food-list-thumb-btn"
+                    onClick={(ev) => {
+                      ev.stopPropagation()
+                      setLightbox({ url: photoUrls[f.photoId!], name: f.name })
+                    }}
+                    aria-label={`Ver foto de ${f.name}`}
+                  >
+                    <img src={photoUrls[f.photoId]} alt="" className="food-list-thumb" />
+                  </button>
+                ) : (
+                  <span className="food-list-thumb-btn" aria-hidden>
+                    <span className="food-list-thumb food-list-thumb-empty">🍽</span>
+                  </span>
+                )}
                 <button
                   type="button"
                   className="food-list-item"
@@ -447,21 +467,10 @@ export function FoodList({
                   }
                   aria-label={`Adicionar ${f.name}, ${f.kcal} ${kcalUnitLabel(f.portionType)}`}
                 >
-                  {f.photoId && photoUrls[f.photoId] ? (
-                    <img
-                      src={photoUrls[f.photoId]}
-                      alt=""
-                      className="food-list-thumb"
-                    />
-                  ) : (
-                    <span className="food-list-thumb food-list-thumb-empty" aria-hidden>
-                      🍽
-                    </span>
-                  )}
-                  <div className="food-list-left">
+                  <span className="food-list-left">
                     <span className="food-list-name">{f.name}</span>
                     <span className="food-list-count">{countLabel(f.count)}</span>
-                  </div>
+                  </span>
                   <span className="food-list-kcal">
                     {f.kcal}
                     <span className="food-list-kcal-unit"> {kcalUnitLabel(f.portionType)}</span>
@@ -490,6 +499,10 @@ export function FoodList({
             ),
           )}
         </ul>
+      )}
+
+      {lightbox && (
+        <PhotoLightbox url={lightbox.url} name={lightbox.name} onClose={closeLightbox} />
       )}
     </div>
   )

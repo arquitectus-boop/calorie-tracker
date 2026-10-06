@@ -1058,11 +1058,30 @@
   justify-content: space-between;
   align-items: center;
   gap: 12px;
-  padding: 12px 14px;
+  padding: 10px 14px 10px 12px;
   min-height: var(--tap);
+  margin: 0;
   border: 0;
   background: transparent;
   text-align: left;
+  line-height: 1.25;
+}
+
+/* Thumbnail lives outside the row button (own tap target → lightbox) */
+.food-list-thumb-btn {
+  flex: 0 0 auto;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 8px 0 8px 10px;
+  border: 0;
+  background: transparent;
+}
+
+button.food-list-thumb-btn:active {
+  opacity: 0.85;
 }
 
 .food-list-item:active {
@@ -1077,6 +1096,9 @@
   background: transparent;
   color: var(--text-muted);
   font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .food-list-action:active {
@@ -1160,26 +1182,39 @@
 }
 
 .food-list-left {
+  flex: 1 1 auto;
   display: flex;
   flex-direction: column;
+  justify-content: center;
+  align-self: center;
   gap: 2px;
   min-width: 0;
 }
 
 .food-list-name {
+  display: block;
   font-weight: 600;
+  line-height: 1.25;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .food-list-count {
+  display: block;
   font-size: 0.8rem;
+  line-height: 1.2;
   color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .food-list-kcal {
   flex: 0 0 auto;
+  align-self: center;
+  line-height: 1.2;
+  white-space: nowrap;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   color: var(--green-soft);
@@ -1260,6 +1295,7 @@
 /* Food photo thumbnails + editor */
 .food-list-thumb {
   flex: 0 0 auto;
+  display: block;
   width: 44px;
   height: 44px;
   border-radius: 10px;
@@ -1327,7 +1363,7 @@
   pointer-events: none;
 }
 
-/* Fullscreen photo lightbox (day entries) */
+/* Fullscreen photo lightbox (Hoje, histórico e Lista) */
 .photo-lightbox {
   position: fixed;
   inset: 0;

@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
 import type { FoodEntry } from '../types'
 import { foodKey } from '../lib/foodCatalog'
+import { PhotoLightbox } from './PhotoLightbox'
 import { entryLineTotal, entryPortionLabel, formatNumber, portionOf } from '../lib/portion'
 
 interface Props {
@@ -19,19 +20,7 @@ interface LightboxState {
 export function EntryList({ entries, photoByKey = {}, onEdit, onDelete }: Props) {
   const [lightbox, setLightbox] = useState<LightboxState | null>(null)
 
-  useEffect(() => {
-    if (!lightbox) return
-    function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') setLightbox(null)
-    }
-    window.addEventListener('keydown', onKey)
-    const prev = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => {
-      window.removeEventListener('keydown', onKey)
-      document.body.style.overflow = prev
-    }
-  }, [lightbox])
+  const closeLightbox = useCallback(() => setLightbox(null), [])
 
   if (entries.length === 0) {
     return (
@@ -89,29 +78,7 @@ export function EntryList({ entries, photoByKey = {}, onEdit, onDelete }: Props)
       </ul>
 
       {lightbox && (
-        <div
-          className="photo-lightbox"
-          role="dialog"
-          aria-modal="true"
-          aria-label={`Foto de ${lightbox.name}`}
-          onClick={() => setLightbox(null)}
-        >
-          <button
-            type="button"
-            className="photo-lightbox-close"
-            onClick={() => setLightbox(null)}
-            aria-label="Fechar"
-          >
-            ✕
-          </button>
-          <img
-            src={lightbox.url}
-            alt={lightbox.name}
-            className="photo-lightbox-img"
-            onClick={(ev) => ev.stopPropagation()}
-          />
-          <p className="photo-lightbox-caption">{lightbox.name}</p>
-        </div>
+        <PhotoLightbox url={lightbox.url} name={lightbox.name} onClose={closeLightbox} />
       )}
     </>
   )
