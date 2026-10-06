@@ -3,6 +3,7 @@ import type { DaySummary, FoodEntry } from '../types'
 import { formatDayTitle, formatDatePT } from '../lib/dates'
 import { entryLineTotal } from '../hooks/useEntries'
 import { EntryList } from './EntryList'
+import { formatFatGrams } from '../lib/fatGrams'
 
 type SortMode = 'oldest' | 'kcal'
 
@@ -85,6 +86,11 @@ export function DayView({ day, onEdit, onDelete, onAdd, onSaveBurned }: Props) {
             <span className="summary-label">Diferença</span>
             <span className="summary-value">{formatDiff(diff)}</span>
             <span className="summary-unit">kcal</span>
+            {diff !== 0 && (
+              <span className="summary-grams" title="Equivalente em gordura corporal (≈ 7700 kcal/kg)">
+                {formatFatGrams(diff)}
+              </span>
+            )}
           </div>
         </div>
       </section>

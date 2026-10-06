@@ -183,7 +183,7 @@ export function useEntries() {
     )
   }, [days, burnedByDate, settings])
 
-  const frequentFoods = useMemo(() => {
+  const allFoods = useMemo(() => {
     const counts = new Map<
       string,
       { name: string; kcal: number; count: number; lastUsed: number }
@@ -203,10 +203,12 @@ export function useEntries() {
         })
       }
     }
-    return [...counts.values()]
-      .sort((a, b) => b.count - a.count || b.lastUsed - a.lastUsed)
-      .slice(0, 20)
+    return [...counts.values()].sort(
+      (a, b) => b.count - a.count || b.lastUsed - a.lastUsed,
+    )
   }, [entries])
+
+  const frequentFoods = useMemo(() => allFoods.slice(0, 20), [allFoods])
 
   const recentFoods = useMemo(() => {
     const seen = new Set<string>()
@@ -237,6 +239,7 @@ export function useEntries() {
     setDayBurned,
     updateSettings,
     frequentFoods,
+    allFoods,
     recentFoods,
   }
 }

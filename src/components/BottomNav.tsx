@@ -10,6 +10,7 @@ export function BottomNav({ view, onChange }: Props) {
     { id: 'hoje', label: 'Hoje', icon: '📅' },
     { id: 'historico', label: 'Histórico', icon: '📋' },
     { id: 'adicionar', label: 'Adicionar', icon: '＋' },
+    { id: 'lista', label: 'Lista', icon: '🔎' },
     { id: 'definicoes', label: 'Ajustes', icon: '⚙️' },
   ]
 

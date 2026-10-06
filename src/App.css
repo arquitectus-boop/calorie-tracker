@@ -385,7 +385,7 @@
   height: var(--nav-h);
   padding: 4px 4px var(--safe-bottom);
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 2px;
   background: rgba(10, 31, 18, 0.92);
   backdrop-filter: blur(16px);
@@ -848,3 +848,234 @@
   pointer-events: none;
 }
 
+
+.summary-grams {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  letter-spacing: 0.01em;
+}
+
+.summary-diff.surplus .summary-grams {
+  color: #ffc9c0;
+}
+
+.summary-diff.deficit .summary-grams {
+  color: #b8efcb;
+}
+
+.history-grams {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-top: 1px;
+}
+
+.stats-section {
+  margin: 0 0 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.stats-heading {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 650;
+  color: var(--green-soft);
+}
+
+.stats-period {
+  background: var(--bg-card);
+  border: 1px solid rgba(168, 230, 195, 0.18);
+  border-radius: 14px;
+  padding: 12px;
+}
+
+.stats-period-title {
+  margin: 0 0 2px;
+  font-size: 0.95rem;
+  font-weight: 650;
+  color: #fff;
+}
+
+.stats-days {
+  margin: 0 0 10px;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.stats-empty {
+  margin: 6px 0 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.stats-card {
+  background: rgba(0, 0, 0, 0.18);
+  border: 1px solid rgba(168, 230, 195, 0.12);
+  border-radius: 12px;
+  padding: 8px 6px;
+  text-align: center;
+}
+
+.stats-label {
+  display: block;
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+  line-height: 1.2;
+}
+
+.stats-value {
+  display: block;
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.1;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+}
+
+.stats-unit {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.65rem;
+  color: var(--green-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.stats-grams {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.stats-saldo.surplus .stats-value {
+  color: #ffb4a8;
+}
+
+.stats-saldo.deficit .stats-value {
+  color: #9be7b8;
+}
+
+.stats-saldo.surplus .stats-grams {
+  color: #ffc9c0;
+}
+
+.stats-saldo.deficit .stats-grams {
+  color: #b8efcb;
+}
+
+.food-list-view {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.food-search-field {
+  margin-bottom: 14px;
+}
+
+.food-search-input {
+  width: 100%;
+  min-height: var(--tap);
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  outline: none;
+  font-size: 1rem;
+}
+
+.food-search-input:focus {
+  border-color: var(--green-bright);
+  box-shadow: 0 0 0 3px rgba(46, 139, 87, 0.25);
+}
+
+.food-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.food-list-item {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  min-height: var(--tap);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  text-align: left;
+}
+
+.food-list-item:active {
+  background: var(--bg-card-hover);
+  border-color: var(--green-bright);
+}
+
+.food-list-left {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.food-list-name {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.food-list-count {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.food-list-kcal {
+  flex: 0 0 auto;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--green-soft);
+  font-size: 1.05rem;
+}
+
+.food-list-kcal-unit {
+  font-weight: 600;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

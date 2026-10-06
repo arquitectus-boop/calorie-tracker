@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { BottomNav } from './components/BottomNav'
 import { DayView } from './components/DayView'
 import { EntryForm } from './components/EntryForm'
+import { FoodList } from './components/FoodList'
 import { History } from './components/History'
 import { QuickAdd } from './components/QuickAdd'
 import { Settings } from './components/Settings'
@@ -21,6 +22,7 @@ function App() {
     exportBackup,
     importBackup,
     frequentFoods,
+    allFoods,
     recentFoods,
     setDayBurned,
     settings,
@@ -177,6 +179,9 @@ function App() {
           </div>
         )}
 
+        {view === 'lista' && (
+          <FoodList foods={allFoods} onPick={(f) => goAdd(f)} />
+        )}
 
         {view === 'definicoes' && (
           <Settings
