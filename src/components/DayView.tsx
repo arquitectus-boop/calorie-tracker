@@ -9,6 +9,8 @@ type SortMode = 'oldest' | 'kcal'
 
 interface Props {
   day: DaySummary
+  /** foodKey → photo data URL (Lista catalog matches) */
+  photoByKey?: Record<string, string>
   onEdit: (entry: FoodEntry) => void
   onDelete: (entry: FoodEntry) => void
   onAdd: () => void
@@ -33,7 +35,7 @@ function formatDiff(n: number): string {
   return String(n)
 }
 
-export function DayView({ day, onEdit, onDelete, onAdd, onSaveBurned }: Props) {
+export function DayView({ day, photoByKey, onEdit, onDelete, onAdd, onSaveBurned }: Props) {
   const [sortMode, setSortMode] = useState<SortMode>('oldest')
   const [burnedInput, setBurnedInput] = useState(
     day.watchBurned > 0 ? String(day.watchBurned) : '',
@@ -117,7 +119,7 @@ export function DayView({ day, onEdit, onDelete, onAdd, onSaveBurned }: Props) {
         </div>
       )}
 
-      <EntryList entries={sorted} onEdit={onEdit} onDelete={onDelete} />
+      <EntryList entries={sorted} photoByKey={photoByKey} onEdit={onEdit} onDelete={onDelete} />
 
       <div className="burned-form burned-form-below">
         <label className="burned-label" htmlFor="burned-kcal">

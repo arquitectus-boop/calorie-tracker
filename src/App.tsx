@@ -8,6 +8,7 @@ import { QuickAdd } from './components/QuickAdd'
 import { Settings } from './components/Settings'
 import { useEntries } from './hooks/useEntries'
 import { todayISO } from './lib/dates'
+import { buildPhotoLookup } from './lib/foodCatalog'
 import type { FoodEntry, PortionType, View } from './types'
 import './App.css'
 
@@ -56,6 +57,11 @@ function App() {
       }
     )
   }, [view, selectedDate, today, days])
+
+  const photoByKey = useMemo(
+    () => buildPhotoLookup(allFoods, photoUrls),
+    [allFoods, photoUrls],
+  )
 
   function showToast(msg: string) {
     setToast(msg)
@@ -125,6 +131,7 @@ function App() {
         {view === 'hoje' && (
           <DayView
             day={activeDay}
+            photoByKey={photoByKey}
             onEdit={goEdit}
             onDelete={handleDelete}
             onAdd={() => goAdd()}

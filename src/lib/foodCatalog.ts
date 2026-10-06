@@ -314,3 +314,18 @@ export function removeCatalogFood(
     hidden,
   }
 }
+
+/** Map foodKey (and aliases) → photo data URL for day-entry thumbnails. */
+export function buildPhotoLookup(
+  foods: FoodListItem[],
+  photoUrls: Record<string, string>,
+): Record<string, string> {
+  const map: Record<string, string> = {}
+  for (const f of foods) {
+    if (!f.photoId) continue
+    const url = photoUrls[f.photoId]
+    if (!url) continue
+    for (const k of f.keys) map[k] = url
+  }
+  return map
+}

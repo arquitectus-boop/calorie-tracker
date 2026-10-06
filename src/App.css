@@ -279,6 +279,31 @@
   min-height: var(--tap);
 }
 
+.entry-thumb-btn {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 0 8px 10px;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.entry-thumb-btn:active {
+  opacity: 0.85;
+}
+
+.entry-thumb {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  object-fit: cover;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--border);
+  display: block;
+}
+
 .entry-main {
   flex: 1;
   display: flex;
@@ -1300,4 +1325,59 @@
   height: 1px;
   opacity: 0;
   pointer-events: none;
+}
+
+/* Fullscreen photo lightbox (day entries) */
+.photo-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right))
+    max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+  background: rgba(0, 0, 0, 0.88);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.photo-lightbox-close {
+  position: absolute;
+  top: max(12px, env(safe-area-inset-top));
+  right: max(12px, env(safe-area-inset-right));
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  font-size: 1.15rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.photo-lightbox-close:active {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.photo-lightbox-img {
+  max-width: min(100%, 560px);
+  max-height: min(78vh, 560px);
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.photo-lightbox-caption {
+  margin: 0;
+  max-width: 90%;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.95rem;
+  font-weight: 560;
 }

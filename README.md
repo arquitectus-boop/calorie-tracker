@@ -58,6 +58,7 @@ A app abre sem barra do Safari, com ícone próprio e tema verde escuro.
 - Importar texto no estilo Google Keep (cabeçalhos de data + linhas de calorias)
 - Cópia de segurança: exportar/importar registos, calorias gastas, definições e a Lista de alimentos em JSON
 - Lista de alimentos: pesquisar, ordenar (frequência, A→Z, kcal), adicionar manualmente, editar e remover; foto opcional (câmara/galeria, redimensionada para máx. 512px JPEG ~0.7, IndexedDB). A Lista junta o histórico com um catálogo local (`localStorage`, chave `calorie-tracker-foods-v1`); remover ou editar na Lista não altera os registos dos dias (a menos que escolhas "Aplicar também aos registos anteriores" ao editar)
+- Miniaturas de foto nos registos do dia (Hoje e outros dias via a mesma lista) quando o alimento coincide com um item da Lista com foto (nome + kcal + tipo de porção); tocar na miniatura abre a foto em ecrã inteiro
 
 ### Formato Keep suportado
 
