@@ -24,6 +24,9 @@ function App() {
     frequentFoods,
     allFoods,
     recentFoods,
+    addFoodToList,
+    editFoodInList,
+    removeFoodFromList,
     setDayBurned,
     settings,
     updateSettings,
@@ -180,7 +183,14 @@ function App() {
         )}
 
         {view === 'lista' && (
-          <FoodList foods={allFoods} onPick={(f) => goAdd(f)} />
+          <FoodList
+            foods={allFoods}
+            onPick={(f) => goAdd(f)}
+            onAdd={addFoodToList}
+            onEdit={editFoodInList}
+            onRemove={removeFoodFromList}
+            onToast={showToast}
+          />
         )}
 
         {view === 'definicoes' && (

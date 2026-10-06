@@ -7,6 +7,12 @@ import {
   replaceAllBurned,
   replaceAllEntries,
 } from './storage'
+import {
+  loadCatalog,
+  parseCatalog,
+  saveCatalog,
+  type FoodCatalog,
+} from './foodCatalog'
 
 export interface CalorieBackup {
   version: 1
@@ -14,6 +20,8 @@ export interface CalorieBackup {
   entries: FoodEntry[]
   burned: Record<string, number>
   settings: AppSettings
+  /** Lista catalog (added in a later release; optional for older backups) */
+  foods?: FoodCatalog
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -69,12 +77,20 @@ export function parseBackup(value: unknown): CalorieBackup {
     throw new Error('O ficheiro não tem um formato de cópia válido')
   }
 
+  let foods: FoodCatalog | undefined
+  if (value.foods !== undefined) {
+    const parsed = parseCatalog(value.foods)
+    if (!parsed) throw new Error('A lista de alimentos da cópia é inválida')
+    foods = parsed
+  }
+
   return {
     version: 1,
     exportedAt: value.exportedAt,
     entries: value.entries,
     burned: value.burned as Record<string, number>,
     settings: value.settings,
+    ...(foods ? { foods } : {}),
   }
 }
 
@@ -96,6 +112,7 @@ export async function createBackup(): Promise<CalorieBackup> {
     entries,
     burned,
     settings: loadSettings(),
+    foods: loadCatalog(),
   }
 }
 
@@ -139,4 +156,6 @@ export async function restoreBackup(backup: CalorieBackup): Promise<void> {
   await replaceAllEntries(backup.entries)
   await replaceAllBurned(backup.burned)
   saveSettings(backup.settings)
+  // Older backups have no Lista catalog: keep the current one in that case.
+  if (backup.foods) saveCatalog(backup.foods)
 }

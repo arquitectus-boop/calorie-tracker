@@ -55,7 +55,8 @@ A app abre sem barra do Safari, com ícone próprio e tema verde escuro.
 - Atalhos de alimentos recentes / frequentes
 - Offline: dados em IndexedDB (com cópia em `localStorage`)
 - Importar texto no estilo Google Keep (cabeçalhos de data + linhas de calorias)
-- Cópia de segurança: exportar/importar registos, calorias gastas e definições em JSON
+- Cópia de segurança: exportar/importar registos, calorias gastas, definições e a Lista de alimentos em JSON
+- Lista de alimentos: pesquisar, ordenar (frequência, A→Z, kcal), adicionar manualmente, editar e remover. A Lista junta o histórico com um catálogo local (`localStorage`, chave `calorie-tracker-foods-v1`); remover ou editar na Lista não altera os registos dos dias (a menos que escolhas "Aplicar também aos registos anteriores" ao editar)
 
 ### Formato Keep suportado
 

@@ -1016,23 +1016,122 @@
   gap: 8px;
 }
 
+.food-list-row {
+  display: flex;
+  align-items: stretch;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  overflow: hidden;
+  min-height: var(--tap);
+}
+
 .food-list-item {
-  width: 100%;
+  flex: 1 1 auto;
+  min-width: 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 12px;
   padding: 12px 14px;
   min-height: var(--tap);
-  border-radius: var(--radius);
-  border: 1px solid var(--border);
-  background: var(--bg-card);
+  border: 0;
+  background: transparent;
   text-align: left;
 }
 
 .food-list-item:active {
   background: var(--bg-card-hover);
-  border-color: var(--green-bright);
+}
+
+.food-list-action {
+  flex: 0 0 auto;
+  width: 46px;
+  border: 0;
+  border-left: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 1rem;
+}
+
+.food-list-action:active {
+  background: var(--bg-card-hover);
+  color: var(--green-soft);
+}
+
+.food-list-action-delete:active {
+  background: rgba(229, 115, 115, 0.15);
+  color: var(--danger);
+}
+
+.food-add-btn {
+  width: 100%;
+  flex: 0 0 auto;
+  margin-bottom: 12px;
+  border-style: dashed;
+  color: var(--green-soft);
+}
+
+.food-sort-options .sort-btn {
+  flex: 1 1 40%;
+}
+
+.food-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding: 14px;
+  border-radius: var(--radius);
+  border: 1px solid rgba(120, 210, 150, 0.45);
+  background: var(--bg-card);
+  scroll-margin: 16px;
+}
+
+.food-editor-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 650;
+  color: var(--green-soft);
+}
+
+.food-editor-fields {
+  display: grid;
+  grid-template-columns: 1fr 96px;
+  gap: 10px;
+}
+
+.food-editor-fields input {
+  width: 100%;
+  min-width: 0;
+  font-size: 1rem;
+}
+
+.food-editor-check {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-size: 0.88rem;
+  color: var(--text);
+}
+
+.food-editor-check input {
+  margin-top: 2px;
+  width: 20px;
+  height: 20px;
+  accent-color: var(--green-bright);
+  flex: 0 0 auto;
+}
+
+.food-editor-check small {
+  display: block;
+  margin-top: 2px;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
+
+.food-list .food-editor {
+  margin-bottom: 0;
 }
 
 .food-list-left {

@@ -17,6 +17,17 @@ import {
   readBackupFile,
   restoreBackup,
 } from '../lib/backup'
+import {
+  addCatalogFood,
+  editCatalogFood,
+  foodKey,
+  loadCatalog,
+  mergeFoods,
+  removeCatalogFood,
+  saveCatalog,
+  type FoodCatalog,
+  type FoodListItem,
+} from '../lib/foodCatalog'
 
 function sortEntries(a: FoodEntry, b: FoodEntry) {
   if (a.date !== b.date) return b.date.localeCompare(a.date)
@@ -32,6 +43,12 @@ export function useEntries() {
   const [burnedByDate, setBurnedByDate] = useState<Record<string, number>>({})
   const [settings, setSettings] = useState<AppSettings>(() => loadSettings())
   const [loading, setLoading] = useState(true)
+  const [catalog, setCatalog] = useState<FoodCatalog>(() => loadCatalog())
+
+  const commitCatalog = useCallback((next: FoodCatalog) => {
+    saveCatalog(next)
+    setCatalog(next)
+  }, [])
 
   useEffect(() => {
     let cancelled = false
@@ -91,6 +108,7 @@ export function useEntries() {
       const loaded = loadSettings()
       setSettings(loaded)
       applyTheme(loaded.themeId)
+      setCatalog(loadCatalog())
       return true
     },
     [refresh],
@@ -183,32 +201,55 @@ export function useEntries() {
     )
   }, [days, burnedByDate, settings])
 
-  const allFoods = useMemo(() => {
-    const counts = new Map<
-      string,
-      { name: string; kcal: number; count: number; lastUsed: number }
-    >()
-    for (const e of entries) {
-      const key = `${e.name.toLowerCase()}|${e.kcal}`
-      const cur = counts.get(key)
-      if (cur) {
-        cur.count += 1
-        cur.lastUsed = Math.max(cur.lastUsed, e.createdAt)
-      } else {
-        counts.set(key, {
-          name: e.name,
-          kcal: e.kcal,
-          count: 1,
-          lastUsed: e.createdAt,
-        })
-      }
-    }
-    return [...counts.values()].sort(
-      (a, b) => b.count - a.count || b.lastUsed - a.lastUsed,
-    )
-  }, [entries])
+  const allFoods = useMemo(
+    () => mergeFoods(entries, catalog),
+    [entries, catalog],
+  )
 
-  const frequentFoods = useMemo(() => allFoods.slice(0, 20), [allFoods])
+  const addFoodToList = useCallback(
+    (name: string, kcal: number) => {
+      commitCatalog(addCatalogFood(catalog, name, kcal))
+    },
+    [catalog, commitCatalog],
+  )
+
+  const editFoodInList = useCallback(
+    async (
+      item: FoodListItem,
+      name: string,
+      kcal: number,
+      applyToHistory: boolean,
+    ) => {
+      commitCatalog(editCatalogFood(catalog, item, name, kcal))
+      if (!applyToHistory) return 0
+      const keys = new Set(item.keys)
+      const now = Date.now()
+      const changed = entries
+        .filter((e) => keys.has(foodKey(e.name, e.kcal)))
+        .map((e) => ({ ...e, name: name.trim(), kcal: Math.round(kcal), updatedAt: now }))
+      if (changed.length === 0) return 0
+      await saveEntriesBulk(changed)
+      setEntries((prev) => {
+        const map = new Map(prev.map((e) => [e.id, e]))
+        for (const e of changed) map.set(e.id, e)
+        return [...map.values()].sort(sortEntries)
+      })
+      return changed.length
+    },
+    [catalog, commitCatalog, entries],
+  )
+
+  const removeFoodFromList = useCallback(
+    (item: FoodListItem) => {
+      commitCatalog(removeCatalogFood(catalog, item))
+    },
+    [catalog, commitCatalog],
+  )
+
+  const frequentFoods = useMemo(
+    () => allFoods.filter((f) => f.count > 0).slice(0, 20),
+    [allFoods],
+  )
 
   const recentFoods = useMemo(() => {
     const seen = new Set<string>()
@@ -241,5 +282,8 @@ export function useEntries() {
     frequentFoods,
     allFoods,
     recentFoods,
+    addFoodToList,
+    editFoodInList,
+    removeFoodFromList,
   }
 }
