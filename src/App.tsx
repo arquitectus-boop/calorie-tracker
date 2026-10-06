@@ -4,11 +4,11 @@ import { DayView } from './components/DayView'
 import { EntryForm } from './components/EntryForm'
 import { FoodList } from './components/FoodList'
 import { History } from './components/History'
-import { QuickAdd } from './components/QuickAdd'
 import { Settings } from './components/Settings'
 import { useEntries } from './hooks/useEntries'
 import { todayISO } from './lib/dates'
-import { buildPhotoLookup } from './lib/foodCatalog'
+import { buildPhotoLookup, foodKey } from './lib/foodCatalog'
+import { portionOf } from './lib/portion'
 import type { FoodEntry, PortionType, View } from './types'
 import './App.css'
 
@@ -22,12 +22,11 @@ function App() {
     removeEntry,
     exportBackup,
     importBackup,
-    frequentFoods,
     allFoods,
-    recentFoods,
     addFoodToList,
     editFoodInList,
     removeFoodFromList,
+    syncFoodPhoto,
     photoUrls,
     setDayBurned,
     settings,
@@ -62,6 +61,15 @@ function App() {
     () => buildPhotoLookup(allFoods, photoUrls),
     [allFoods, photoUrls],
   )
+
+  /** Prefill catalog photo when editing a registo or picking a known food. */
+  const formPhotoUrl = useMemo(() => {
+    const name = editing?.name ?? quickPrefill?.name
+    const kcal = editing?.kcal ?? quickPrefill?.kcal
+    const pt = editing ? portionOf(editing) : (quickPrefill?.portionType ?? 'unit')
+    if (!name || kcal === undefined) return undefined
+    return photoByKey[foodKey(name, kcal, pt)]
+  }, [editing, quickPrefill, photoByKey])
 
   function showToast(msg: string) {
     setToast(msg)
@@ -165,6 +173,7 @@ function App() {
                   quantity: 1,
                 }
               }
+              initialPhotoUrl={formPhotoUrl}
               submitLabel={editing ? 'Guardar' : 'Adicionar'}
               onCancel={() => {
                 setEditing(null)
@@ -172,26 +181,26 @@ function App() {
                 setView('hoje')
               }}
               onSubmit={async (data) => {
+                const { photo, ...entryData } = data
                 if (editing) {
-                  await updateEntry({ ...editing, ...data })
+                  await updateEntry({ ...editing, ...entryData })
                   showToast('Registo atualizado')
                 } else {
-                  await addEntry(data)
+                  await addEntry(entryData)
                   showToast('Registo adicionado')
                 }
+                await syncFoodPhoto(
+                  entryData.name,
+                  entryData.kcal,
+                  entryData.portionType,
+                  photo,
+                )
                 setEditing(null)
                 setQuickPrefill(null)
-                setSelectedDate(data.date === todayISO() ? null : data.date)
+                setSelectedDate(entryData.date === todayISO() ? null : entryData.date)
                 setView('hoje')
               }}
             />
-            {!editing && (
-              <QuickAdd
-                recent={recentFoods}
-                frequent={frequentFoods}
-                onPick={(f) => setQuickPrefill(f)}
-              />
-            )}
           </div>
         )}
 

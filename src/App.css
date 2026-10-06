@@ -604,64 +604,6 @@
   color: var(--green-soft);
 }
 
-.quick-add {
-  margin-top: 28px;
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-}
-
-.section-label {
-  margin: 0 0 10px;
-  font-size: 0.8rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--text-muted);
-}
-
-.chip-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 44px;
-  padding: 8px 12px;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: var(--bg-card);
-  max-width: 100%;
-}
-
-.chip:active {
-  background: var(--bg-card-hover);
-  border-color: var(--green-bright);
-}
-
-.chip-kcal {
-  font-weight: 700;
-  color: var(--green-soft);
-  font-variant-numeric: tabular-nums;
-}
-
-.chip-kcal-unit {
-  font-weight: 600;
-  font-size: 0.65em;
-  opacity: 0.9;
-  margin-left: 1px;
-}
-
-.chip-name {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  max-width: 180px;
-}
-
 .hint {
   color: var(--text-muted);
   margin: 0 0 14px;

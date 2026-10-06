@@ -337,24 +337,54 @@ export function useEntries() {
     [catalog, commitCatalog],
   )
 
-  const frequentFoods = useMemo(
-    () => allFoods.filter((f) => f.count > 0).slice(0, 20),
-    [allFoods],
-  )
+  /**
+   * Sync a photo change from the Adicionar form onto the Lista catalog
+   * for the food identified by name + kcal + portionType.
+   * No-op when photo.action is 'keep'.
+   */
+  const syncFoodPhoto = useCallback(
+    async (
+      name: string,
+      kcal: number,
+      portionType: PortionType,
+      photo: PhotoChange,
+    ) => {
+      if (photo.action === 'keep') return
 
-  const recentFoods = useMemo(() => {
-    const seen = new Set<string>()
-    const result: { name: string; kcal: number; portionType: PortionType }[] = []
-    for (const e of entries) {
-      const portionType = portionOf(e)
-      const key = foodKey(e.name, e.kcal, portionType)
-      if (seen.has(key)) continue
-      seen.add(key)
-      result.push({ name: e.name, kcal: e.kcal, portionType })
-      if (result.length >= 12) break
-    }
-    return result
-  }, [entries])
+      const clean = name.trim()
+      const key = foodKey(clean, kcal, portionType)
+      const item = mergeFoods(entries, catalog).find((f) => f.key === key)
+
+      if (photo.action === 'set') {
+        const newId = await putPhoto(photo.dataUrl)
+        if (item?.photoId && item.photoId !== newId) {
+          await deletePhoto(item.photoId)
+        }
+        const next = item
+          ? editCatalogFood(catalog, item, clean, kcal, portionType, newId)
+          : addCatalogFood(catalog, clean, kcal, portionType, newId)
+        commitCatalog(next)
+        setPhotoUrls((prev) => {
+          const map = { ...prev }
+          if (item?.photoId) delete map[item.photoId]
+          map[newId] = photo.dataUrl
+          return map
+        })
+        return
+      }
+
+      // remove
+      if (!item?.photoId) return
+      await deletePhoto(item.photoId)
+      commitCatalog(editCatalogFood(catalog, item, item.name, item.kcal, item.portionType, null))
+      setPhotoUrls((prev) => {
+        const map = { ...prev }
+        delete map[item.photoId!]
+        return map
+      })
+    },
+    [catalog, commitCatalog, entries],
+  )
 
   return {
     entries,
@@ -371,12 +401,11 @@ export function useEntries() {
     refresh,
     setDayBurned,
     updateSettings,
-    frequentFoods,
     allFoods,
-    recentFoods,
     addFoodToList,
     editFoodInList,
     removeFoodFromList,
+    syncFoodPhoto,
     photoUrls,
   }
 }

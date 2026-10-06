@@ -4,6 +4,7 @@ import { compressImageFile } from '../lib/photo'
 import { kcalUnitLabel } from '../lib/portion'
 import type { PhotoChange } from '../hooks/useEntries'
 import type { PortionType } from '../types'
+import { FoodPhotoField } from './FoodPhotoField'
 import { PhotoLightbox } from './PhotoLightbox'
 import { PortionToggle } from './PortionToggle'
 
@@ -96,15 +97,12 @@ function FoodEditor({
   /** Pending photo mutation relative to the saved food */
   const [photoChange, setPhotoChange] = useState<PhotoChange>({ action: 'keep' })
   const ref = useRef<HTMLFormElement>(null)
-  const cameraRef = useRef<HTMLInputElement>(null)
-  const galleryRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     ref.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
   }, [])
 
-  async function handlePhotoFile(file: File | undefined) {
-    if (!file) return
+  async function handlePhotoFile(file: File) {
     setPhotoBusy(true)
     setError('')
     try {
@@ -145,69 +143,13 @@ function FoodEditor({
       <h2 className="food-editor-title">{title}</h2>
       <PortionToggle value={portionType} onChange={setPortionType} />
 
-      <div className="food-photo-block">
-        {previewUrl ? (
-          <div className="food-photo-preview-wrap">
-            <img
-              src={previewUrl}
-              alt="Foto do alimento"
-              className="food-photo-preview"
-            />
-            <button
-              type="button"
-              className="btn btn-ghost food-photo-remove"
-              onClick={removePhoto}
-              disabled={busy || photoBusy}
-            >
-              Remover foto
-            </button>
-          </div>
-        ) : (
-          <p className="food-photo-empty">Sem foto (opcional)</p>
-        )}
-        <div className="food-photo-actions">
-          <button
-            type="button"
-            className="btn btn-ghost food-photo-btn"
-            disabled={busy || photoBusy}
-            onClick={() => cameraRef.current?.click()}
-          >
-            {photoBusy ? 'A processar…' : '📷 Câmara'}
-          </button>
-          <button
-            type="button"
-            className="btn btn-ghost food-photo-btn"
-            disabled={busy || photoBusy}
-            onClick={() => galleryRef.current?.click()}
-          >
-            Galeria
-          </button>
-        </div>
-        {/* capture=environment → rear camera on iPhone Safari */}
-        <input
-          ref={cameraRef}
-          type="file"
-          accept="image/*"
-          capture="environment"
-          className="food-photo-input"
-          onChange={(e) => {
-            const file = e.target.files?.[0]
-            e.target.value = ''
-            void handlePhotoFile(file)
-          }}
-        />
-        <input
-          ref={galleryRef}
-          type="file"
-          accept="image/*"
-          className="food-photo-input"
-          onChange={(e) => {
-            const file = e.target.files?.[0]
-            e.target.value = ''
-            void handlePhotoFile(file)
-          }}
-        />
-      </div>
+      <FoodPhotoField
+        previewUrl={previewUrl}
+        photoBusy={photoBusy}
+        disabled={busy}
+        onFile={(file) => void handlePhotoFile(file)}
+        onRemove={removePhoto}
+      />
 
       <div className="food-editor-fields">
         <label className="field">

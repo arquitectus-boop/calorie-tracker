@@ -1,11 +1,16 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { todayISO } from '../lib/dates'
+import { compressImageFile } from '../lib/photo'
 import { formatNumber, lineTotal, portionOf } from '../lib/portion'
+import type { PhotoChange } from '../hooks/useEntries'
 import type { FoodEntry, PortionType } from '../types'
+import { FoodPhotoField } from './FoodPhotoField'
 import { PortionToggle } from './PortionToggle'
 
 interface Props {
   initial?: Partial<FoodEntry>
+  /** Foto do catálogo (Lista) para este alimento, se existir */
+  initialPhotoUrl?: string
   submitLabel: string
   onSubmit: (data: {
     date: string
@@ -13,6 +18,7 @@ interface Props {
     name: string
     quantity: number
     portionType: PortionType
+    photo: PhotoChange
   }) => void | Promise<void>
   onCancel?: () => void
 }
@@ -30,7 +36,13 @@ function parseQuantity(value: string): number {
   return parseFloat(value.replace(',', '.'))
 }
 
-export function EntryForm({ initial, submitLabel, onSubmit, onCancel }: Props) {
+export function EntryForm({
+  initial,
+  initialPhotoUrl,
+  submitLabel,
+  onSubmit,
+  onCancel,
+}: Props) {
   const [portionType, setPortionType] = useState<PortionType>(portionOf(initial))
   const [date, setDate] = useState(initial?.date ?? todayISO())
   const [kcal, setKcal] = useState(
@@ -41,6 +53,10 @@ export function EntryForm({ initial, submitLabel, onSubmit, onCancel }: Props) {
     initialQuantity(initial, portionOf(initial)),
   )
   const [busy, setBusy] = useState(false)
+  const [photoBusy, setPhotoBusy] = useState(false)
+  const [previewUrl, setPreviewUrl] = useState<string | undefined>(initialPhotoUrl)
+  const [photoChange, setPhotoChange] = useState<PhotoChange>({ action: 'keep' })
+  const [savedPhotoUrl, setSavedPhotoUrl] = useState<string | undefined>(initialPhotoUrl)
   const [error, setError] = useState('')
 
   useEffect(() => {
@@ -50,7 +66,10 @@ export function EntryForm({ initial, submitLabel, onSubmit, onCancel }: Props) {
     setKcal(initial?.kcal !== undefined ? String(initial.kcal) : '')
     setName(initial?.name ?? '')
     setQuantity(initialQuantity(initial, pt))
-  }, [initial])
+    setPreviewUrl(initialPhotoUrl)
+    setSavedPhotoUrl(initialPhotoUrl)
+    setPhotoChange({ action: 'keep' })
+  }, [initial, initialPhotoUrl])
 
   const per100g = portionType === 'per100g'
   const k = parseInt(kcal, 10)
@@ -66,6 +85,26 @@ export function EntryForm({ initial, submitLabel, onSubmit, onCancel }: Props) {
     // Swap sensible defaults: units ↔ grams are not interchangeable.
     if (next === 'per100g' && (quantity === '1' || quantity === '')) setQuantity('')
     else if (next === 'unit' && (quantity === '' || q >= 20)) setQuantity('1')
+  }
+
+  async function handlePhotoFile(file: File) {
+    setPhotoBusy(true)
+    setError('')
+    try {
+      const dataUrl = await compressImageFile(file)
+      setPreviewUrl(dataUrl)
+      setPhotoChange({ action: 'set', dataUrl })
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Não foi possível usar a foto')
+    } finally {
+      setPhotoBusy(false)
+    }
+  }
+
+  function removePhoto() {
+    setPreviewUrl(undefined)
+    // Clear a newly picked photo, or mark a saved catalog photo for deletion.
+    setPhotoChange(savedPhotoUrl ? { action: 'remove' } : { action: 'keep' })
   }
 
   async function handleSubmit(e: FormEvent) {
@@ -99,6 +138,7 @@ export function EntryForm({ initial, submitLabel, onSubmit, onCancel }: Props) {
         name: name.trim(),
         quantity: q,
         portionType,
+        photo: photoChange,
       })
     } finally {
       setBusy(false)
@@ -110,6 +150,14 @@ export function EntryForm({ initial, submitLabel, onSubmit, onCancel }: Props) {
   return (
     <form className="entry-form" onSubmit={handleSubmit}>
       <PortionToggle value={portionType} onChange={changePortion} />
+
+      <FoodPhotoField
+        previewUrl={previewUrl}
+        photoBusy={photoBusy}
+        disabled={busy}
+        onFile={(file) => void handlePhotoFile(file)}
+        onRemove={removePhoto}
+      />
 
       <label className="field">
         <span>{per100g ? 'kcal por 100 g' : 'kcal'}</span>
@@ -179,7 +227,7 @@ export function EntryForm({ initial, submitLabel, onSubmit, onCancel }: Props) {
             Cancelar
           </button>
         )}
-        <button type="submit" className="btn btn-primary" disabled={busy}>
+        <button type="submit" className="btn btn-primary" disabled={busy || photoBusy}>
           {busy ? 'A guardar…' : submitLabel}
         </button>
       </div>
