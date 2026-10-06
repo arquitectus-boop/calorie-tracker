@@ -14,6 +14,11 @@ import {
   saveCatalog,
   type FoodCatalog,
 } from './foodCatalog'
+import {
+  loadAllPhotos,
+  parsePhotoMap,
+  replaceAllPhotos,
+} from './photo'
 
 export interface CalorieBackup {
   version: 1
@@ -23,6 +28,11 @@ export interface CalorieBackup {
   settings: AppSettings
   /** Lista catalog (added in a later release; optional for older backups) */
   foods?: FoodCatalog
+  /**
+   * Compressed food photos (photoId → JPEG data URL).
+   * Optional for older backups; when present, restores IndexedDB photos.
+   */
+  photos?: Record<string, string>
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -87,6 +97,13 @@ export function parseBackup(value: unknown): CalorieBackup {
     foods = parsed
   }
 
+  let photos: Record<string, string> | undefined
+  if (value.photos !== undefined) {
+    const parsed = parsePhotoMap(value.photos)
+    if (!parsed) throw new Error('As fotos da cópia são inválidas')
+    photos = parsed
+  }
+
   return {
     version: 1,
     exportedAt: value.exportedAt,
@@ -94,6 +111,7 @@ export function parseBackup(value: unknown): CalorieBackup {
     burned: value.burned as Record<string, number>,
     settings: value.settings,
     ...(foods ? { foods } : {}),
+    ...(photos ? { photos } : {}),
   }
 }
 
@@ -108,7 +126,11 @@ export async function readBackupFile(file: File): Promise<CalorieBackup> {
 }
 
 export async function createBackup(): Promise<CalorieBackup> {
-  const [entries, burned] = await Promise.all([loadEntries(), loadBurnedMap()])
+  const [entries, burned, photos] = await Promise.all([
+    loadEntries(),
+    loadBurnedMap(),
+    loadAllPhotos(),
+  ])
   return {
     version: 1,
     exportedAt: new Date().toISOString(),
@@ -116,6 +138,7 @@ export async function createBackup(): Promise<CalorieBackup> {
     burned,
     settings: loadSettings(),
     foods: loadCatalog(),
+    ...(Object.keys(photos).length > 0 ? { photos } : {}),
   }
 }
 
@@ -161,4 +184,7 @@ export async function restoreBackup(backup: CalorieBackup): Promise<void> {
   saveSettings(backup.settings)
   // Older backups have no Lista catalog: keep the current one in that case.
   if (backup.foods) saveCatalog(backup.foods)
+  // Photos: replace when the backup includes a photos map (even empty).
+  // Older backups without photos leave IndexedDB photos untouched.
+  if (backup.photos !== undefined) await replaceAllPhotos(backup.photos)
 }

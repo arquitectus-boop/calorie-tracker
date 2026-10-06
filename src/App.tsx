@@ -27,6 +27,7 @@ function App() {
     addFoodToList,
     editFoodInList,
     removeFoodFromList,
+    photoUrls,
     setDayBurned,
     settings,
     updateSettings,
@@ -190,6 +191,7 @@ function App() {
         {view === 'lista' && (
           <FoodList
             foods={allFoods}
+            photoUrls={photoUrls}
             onPick={(f) => goAdd(f)}
             onAdd={addFoodToList}
             onEdit={editFoodInList}

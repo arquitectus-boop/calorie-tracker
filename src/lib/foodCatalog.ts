@@ -19,6 +19,8 @@ export interface CatalogFood {
   kcal: number
   /** Optional; missing means 'unit' (older catalogs) */
   portionType?: PortionType
+  /** IndexedDB photo id (JPEG data URL stored separately) */
+  photoId?: string
   /** Older history keys (name|kcal) merged into this food, e.g. after an edit */
   aliases: string[]
   createdAt: number
@@ -43,6 +45,8 @@ export interface FoodListItem {
   count: number
   lastUsed: number
   catalogId?: string
+  /** IndexedDB photo id when the food has a catalog photo */
+  photoId?: string
 }
 
 const LS_KEY = 'calorie-tracker-foods-v1'
@@ -78,6 +82,7 @@ function isCatalogFood(value: unknown): value is CatalogFood {
     Number.isFinite(value.kcal) &&
     value.kcal >= 0 &&
     (value.portionType === undefined || isPortionType(value.portionType)) &&
+    (value.photoId === undefined || typeof value.photoId === 'string') &&
     Array.isArray(value.aliases) &&
     value.aliases.every((a) => typeof a === 'string') &&
     typeof value.createdAt === 'number' &&
@@ -185,6 +190,7 @@ export function mergeFoods(
       count,
       lastUsed,
       catalogId: food.id,
+      ...(food.photoId ? { photoId: food.photoId } : {}),
     })
   }
 
@@ -217,6 +223,7 @@ export function addCatalogFood(
   name: string,
   kcal: number,
   portionType: PortionType = 'unit',
+  photoId?: string,
 ): FoodCatalog {
   const now = Date.now()
   const clean = name.trim()
@@ -226,6 +233,7 @@ export function addCatalogFood(
     name: clean,
     kcal: Math.round(kcal),
     portionType,
+    ...(photoId ? { photoId } : {}),
     aliases: [],
     createdAt: now,
     updatedAt: now,
@@ -244,6 +252,8 @@ export function editCatalogFood(
   name: string,
   kcal: number,
   portionType: PortionType = item.portionType,
+  /** undefined = keep existing; null = clear; string = set */
+  photoId?: string | null,
 ): FoodCatalog {
   const now = Date.now()
   const clean = name.trim()
@@ -267,11 +277,14 @@ export function editCatalogFood(
   absorbed.delete(newKey)
 
   const existing = catalog.foods.find((f) => f.id === item.catalogId)
+  const resolvedPhotoId =
+    photoId === undefined ? existing?.photoId : photoId === null ? undefined : photoId
   const food: CatalogFood = {
     id: existing?.id ?? crypto.randomUUID(),
     name: clean,
     kcal: rounded,
     portionType,
+    ...(resolvedPhotoId ? { photoId: resolvedPhotoId } : {}),
     aliases: [...absorbed],
     createdAt: existing?.createdAt ?? now,
     updatedAt: now,

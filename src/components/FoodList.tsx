@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import { foodKey, type FoodListItem } from '../lib/foodCatalog'
+import { compressImageFile } from '../lib/photo'
 import { kcalUnitLabel } from '../lib/portion'
+import type { PhotoChange } from '../hooks/useEntries'
 import type { PortionType } from '../types'
 import { PortionToggle } from './PortionToggle'
 
@@ -53,6 +55,8 @@ interface EditorProps {
   initialName?: string
   initialKcal?: number
   initialPortion?: PortionType
+  /** Existing photo preview URL (from IndexedDB cache) */
+  initialPhotoUrl?: string
   historyCount?: number
   submitLabel: string
   validate: (name: string, kcal: number, portionType: PortionType) => string | null
@@ -61,6 +65,7 @@ interface EditorProps {
     kcal: number,
     portionType: PortionType,
     applyToHistory: boolean,
+    photo: PhotoChange,
   ) => Promise<void> | void
   onCancel: () => void
 }
@@ -70,6 +75,7 @@ function FoodEditor({
   initialName = '',
   initialKcal,
   initialPortion = 'unit',
+  initialPhotoUrl,
   historyCount = 0,
   submitLabel,
   validate,
@@ -83,11 +89,39 @@ function FoodEditor({
   const portionChanged = portionType !== initialPortion
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
+  const [photoBusy, setPhotoBusy] = useState(false)
+  /** Preview shown in the form (may be new compressed data URL) */
+  const [previewUrl, setPreviewUrl] = useState<string | undefined>(initialPhotoUrl)
+  /** Pending photo mutation relative to the saved food */
+  const [photoChange, setPhotoChange] = useState<PhotoChange>({ action: 'keep' })
   const ref = useRef<HTMLFormElement>(null)
+  const cameraRef = useRef<HTMLInputElement>(null)
+  const galleryRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     ref.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
   }, [])
+
+  async function handlePhotoFile(file: File | undefined) {
+    if (!file) return
+    setPhotoBusy(true)
+    setError('')
+    try {
+      const dataUrl = await compressImageFile(file)
+      setPreviewUrl(dataUrl)
+      setPhotoChange({ action: 'set', dataUrl })
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Não foi possível usar a foto')
+    } finally {
+      setPhotoBusy(false)
+    }
+  }
+
+  function removePhoto() {
+    setPreviewUrl(undefined)
+    // Clear a newly picked photo, or mark a saved photo for deletion.
+    setPhotoChange(initialPhotoUrl ? { action: 'remove' } : { action: 'keep' })
+  }
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
@@ -99,7 +133,7 @@ function FoodEditor({
     if (problem) return setError(problem)
     setBusy(true)
     try {
-      await onSubmit(clean, k, portionType, applyToHistory && !portionChanged)
+      await onSubmit(clean, k, portionType, applyToHistory && !portionChanged, photoChange)
     } finally {
       setBusy(false)
     }
@@ -109,6 +143,71 @@ function FoodEditor({
     <form ref={ref} className="food-editor" onSubmit={handleSubmit}>
       <h2 className="food-editor-title">{title}</h2>
       <PortionToggle value={portionType} onChange={setPortionType} />
+
+      <div className="food-photo-block">
+        {previewUrl ? (
+          <div className="food-photo-preview-wrap">
+            <img
+              src={previewUrl}
+              alt="Foto do alimento"
+              className="food-photo-preview"
+            />
+            <button
+              type="button"
+              className="btn btn-ghost food-photo-remove"
+              onClick={removePhoto}
+              disabled={busy || photoBusy}
+            >
+              Remover foto
+            </button>
+          </div>
+        ) : (
+          <p className="food-photo-empty">Sem foto (opcional)</p>
+        )}
+        <div className="food-photo-actions">
+          <button
+            type="button"
+            className="btn btn-ghost food-photo-btn"
+            disabled={busy || photoBusy}
+            onClick={() => cameraRef.current?.click()}
+          >
+            {photoBusy ? 'A processar…' : '📷 Câmara'}
+          </button>
+          <button
+            type="button"
+            className="btn btn-ghost food-photo-btn"
+            disabled={busy || photoBusy}
+            onClick={() => galleryRef.current?.click()}
+          >
+            Galeria
+          </button>
+        </div>
+        {/* capture=environment → rear camera on iPhone Safari */}
+        <input
+          ref={cameraRef}
+          type="file"
+          accept="image/*"
+          capture="environment"
+          className="food-photo-input"
+          onChange={(e) => {
+            const file = e.target.files?.[0]
+            e.target.value = ''
+            void handlePhotoFile(file)
+          }}
+        />
+        <input
+          ref={galleryRef}
+          type="file"
+          accept="image/*"
+          className="food-photo-input"
+          onChange={(e) => {
+            const file = e.target.files?.[0]
+            e.target.value = ''
+            void handlePhotoFile(file)
+          }}
+        />
+      </div>
+
       <div className="food-editor-fields">
         <label className="field">
           <span>Alimento</span>
@@ -157,7 +256,7 @@ function FoodEditor({
         <button type="button" className="btn btn-ghost" onClick={onCancel}>
           Cancelar
         </button>
-        <button type="submit" className="btn btn-primary" disabled={busy}>
+        <button type="submit" className="btn btn-primary" disabled={busy || photoBusy}>
           {busy ? 'A guardar…' : submitLabel}
         </button>
       </div>
@@ -167,20 +266,35 @@ function FoodEditor({
 
 interface Props {
   foods: FoodListItem[]
+  photoUrls: Record<string, string>
   onPick: (food: { name: string; kcal: number; portionType: PortionType }) => void
-  onAdd: (name: string, kcal: number, portionType: PortionType) => void
+  onAdd: (
+    name: string,
+    kcal: number,
+    portionType: PortionType,
+    photo: PhotoChange,
+  ) => Promise<void> | void
   onEdit: (
     item: FoodListItem,
     name: string,
     kcal: number,
     portionType: PortionType,
     applyToHistory: boolean,
+    photo: PhotoChange,
   ) => Promise<number>
-  onRemove: (item: FoodListItem) => void
+  onRemove: (item: FoodListItem) => void | Promise<void>
   onToast: (msg: string) => void
 }
 
-export function FoodList({ foods, onPick, onAdd, onEdit, onRemove, onToast }: Props) {
+export function FoodList({
+  foods,
+  photoUrls,
+  onPick,
+  onAdd,
+  onEdit,
+  onRemove,
+  onToast,
+}: Props) {
   const [query, setQuery] = useState('')
   const [sortMode, setSortMode] = useState<SortMode>(() => loadSort())
   const [adding, setAdding] = useState(false)
@@ -219,7 +333,7 @@ export function FoodList({ foods, onPick, onAdd, onEdit, onRemove, onToast }: Pr
     const ok = window.confirm(`Remover «${item.name}» (${item.kcal} ${kcalUnitLabel(item.portionType)}) da Lista?${extra}`)
     if (!ok) return
     if (editingKey === item.key) setEditingKey(null)
-    onRemove(item)
+    void onRemove(item)
     onToast('Removido da Lista')
   }
 
@@ -227,7 +341,7 @@ export function FoodList({ foods, onPick, onAdd, onEdit, onRemove, onToast }: Pr
     <div className="food-list-view">
       <h1 className="page-title">Lista</h1>
       <p className="hint">
-        Toca num alimento para o adicionar. ✎ edita, ✕ remove só da Lista (o histórico fica).
+        Toca num alimento para o adicionar. ✎ edita (podes pôr foto), ✕ remove só da Lista (o histórico fica).
       </p>
 
       {adding ? (
@@ -238,8 +352,8 @@ export function FoodList({ foods, onPick, onAdd, onEdit, onRemove, onToast }: Pr
             findDuplicate(n, k, pt) ? 'Esse alimento já está na Lista.' : null
           }
           onCancel={() => setAdding(false)}
-          onSubmit={(n, k, pt) => {
-            onAdd(n, k, pt)
+          onSubmit={async (n, k, pt, _apply, photo) => {
+            await onAdd(n, k, pt, photo)
             setAdding(false)
             onToast('Adicionado à Lista')
           }}
@@ -304,13 +418,14 @@ export function FoodList({ foods, onPick, onAdd, onEdit, onRemove, onToast }: Pr
                   initialName={f.name}
                   initialKcal={f.kcal}
                   initialPortion={f.portionType}
+                  initialPhotoUrl={f.photoId ? photoUrls[f.photoId] : undefined}
                   historyCount={f.count}
                   submitLabel="Guardar"
                   validate={() => null}
                   onCancel={() => setEditingKey(null)}
-                  onSubmit={async (n, k, pt, apply) => {
+                  onSubmit={async (n, k, pt, apply, photo) => {
                     const merged = findDuplicate(n, k, pt, f)
-                    const changed = await onEdit(f, n, k, pt, apply)
+                    const changed = await onEdit(f, n, k, pt, apply, photo)
                     setEditingKey(null)
                     onToast(
                       changed > 0
@@ -332,6 +447,17 @@ export function FoodList({ foods, onPick, onAdd, onEdit, onRemove, onToast }: Pr
                   }
                   aria-label={`Adicionar ${f.name}, ${f.kcal} ${kcalUnitLabel(f.portionType)}`}
                 >
+                  {f.photoId && photoUrls[f.photoId] ? (
+                    <img
+                      src={photoUrls[f.photoId]}
+                      alt=""
+                      className="food-list-thumb"
+                    />
+                  ) : (
+                    <span className="food-list-thumb food-list-thumb-empty" aria-hidden>
+                      🍽
+                    </span>
+                  )}
                   <div className="food-list-left">
                     <span className="food-list-name">{f.name}</span>
                     <span className="food-list-count">{countLabel(f.count)}</span>

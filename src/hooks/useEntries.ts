@@ -29,6 +29,13 @@ import {
   type FoodCatalog,
   type FoodListItem,
 } from '../lib/foodCatalog'
+import { deletePhoto, getPhoto, putPhoto } from '../lib/photo'
+
+/** How the Lista editor changes the food photo. */
+export type PhotoChange =
+  | { action: 'keep' }
+  | { action: 'remove' }
+  | { action: 'set'; dataUrl: string }
 
 function sortEntries(a: FoodEntry, b: FoodEntry) {
   if (a.date !== b.date) return b.date.localeCompare(a.date)
@@ -43,10 +50,31 @@ export function useEntries() {
   const [settings, setSettings] = useState<AppSettings>(() => loadSettings())
   const [loading, setLoading] = useState(true)
   const [catalog, setCatalog] = useState<FoodCatalog>(() => loadCatalog())
+  /** photoId → data URL for thumbnails (loaded lazily / after mutations) */
+  const [photoUrls, setPhotoUrls] = useState<Record<string, string>>({})
 
   const commitCatalog = useCallback((next: FoodCatalog) => {
     saveCatalog(next)
     setCatalog(next)
+  }, [])
+
+  const refreshPhotoUrls = useCallback(async (cat: FoodCatalog) => {
+    const ids = cat.foods.map((f) => f.photoId).filter((id): id is string => !!id)
+    if (ids.length === 0) {
+      setPhotoUrls({})
+      return
+    }
+    const entries = await Promise.all(
+      ids.map(async (id) => {
+        const url = await getPhoto(id)
+        return url ? ([id, url] as const) : null
+      }),
+    )
+    const map: Record<string, string> = {}
+    for (const row of entries) {
+      if (row) map[row[0]] = row[1]
+    }
+    setPhotoUrls(map)
   }, [])
 
   useEffect(() => {
@@ -59,13 +87,16 @@ export function useEntries() {
         const loaded = loadSettings()
         setSettings(loaded)
         applyTheme(loaded.themeId)
+        const cat = loadCatalog()
+        setCatalog(cat)
+        await refreshPhotoUrls(cat)
         setLoading(false)
       }
     })()
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [refreshPhotoUrls])
 
   const refresh = useCallback(async () => {
     const [data, burned] = await Promise.all([loadEntries(), loadBurnedMap()])
@@ -107,10 +138,12 @@ export function useEntries() {
       const loaded = loadSettings()
       setSettings(loaded)
       applyTheme(loaded.themeId)
-      setCatalog(loadCatalog())
+      const cat = loadCatalog()
+      setCatalog(cat)
+      await refreshPhotoUrls(cat)
       return true
     },
-    [refresh],
+    [refresh, refreshPhotoUrls],
   )
 
   const addEntry = useCallback(
@@ -208,8 +241,23 @@ export function useEntries() {
   )
 
   const addFoodToList = useCallback(
-    (name: string, kcal: number, portionType: PortionType) => {
-      commitCatalog(addCatalogFood(catalog, name, kcal, portionType))
+    async (
+      name: string,
+      kcal: number,
+      portionType: PortionType,
+      photo: PhotoChange = { action: 'keep' },
+    ) => {
+      let photoId: string | undefined
+      let dataUrl: string | undefined
+      if (photo.action === 'set') {
+        dataUrl = photo.dataUrl
+        photoId = await putPhoto(dataUrl)
+      }
+      const next = addCatalogFood(catalog, name, kcal, portionType, photoId)
+      commitCatalog(next)
+      if (photoId && dataUrl) {
+        setPhotoUrls((prev) => ({ ...prev, [photoId!]: dataUrl! }))
+      }
     },
     [catalog, commitCatalog],
   )
@@ -221,8 +269,35 @@ export function useEntries() {
       kcal: number,
       portionType: PortionType,
       applyToHistory: boolean,
+      photo: PhotoChange = { action: 'keep' },
     ) => {
-      commitCatalog(editCatalogFood(catalog, item, name, kcal, portionType))
+      let photoArg: string | null | undefined = undefined
+      if (photo.action === 'remove') {
+        photoArg = null
+        if (item.photoId) await deletePhoto(item.photoId)
+      } else if (photo.action === 'set') {
+        const newId = await putPhoto(photo.dataUrl)
+        photoArg = newId
+        if (item.photoId && item.photoId !== newId) await deletePhoto(item.photoId)
+        setPhotoUrls((prev) => {
+          const next = { ...prev }
+          if (item.photoId) delete next[item.photoId]
+          next[newId] = photo.dataUrl
+          return next
+        })
+      }
+
+      const next = editCatalogFood(catalog, item, name, kcal, portionType, photoArg)
+      commitCatalog(next)
+
+      if (photo.action === 'remove' && item.photoId) {
+        setPhotoUrls((prev) => {
+          const n = { ...prev }
+          delete n[item.photoId!]
+          return n
+        })
+      }
+
       // Changing unit ↔ per 100 g would reinterpret logged quantities, so the
       // history is only updated when the portion type stays the same.
       if (!applyToHistory || portionType !== item.portionType) return 0
@@ -248,7 +323,15 @@ export function useEntries() {
   )
 
   const removeFoodFromList = useCallback(
-    (item: FoodListItem) => {
+    async (item: FoodListItem) => {
+      if (item.photoId) {
+        await deletePhoto(item.photoId)
+        setPhotoUrls((prev) => {
+          const n = { ...prev }
+          delete n[item.photoId!]
+          return n
+        })
+      }
       commitCatalog(removeCatalogFood(catalog, item))
     },
     [catalog, commitCatalog],
@@ -294,5 +377,6 @@ export function useEntries() {
     addFoodToList,
     editFoodInList,
     removeFoodFromList,
+    photoUrls,
   }
 }

@@ -104,7 +104,7 @@ export function Settings({ settings, onSave, onExportBackup, onImportBackup }: P
       <section className="settings-card">
         <h2 className="settings-title">Cópia de segurança</h2>
         <p className="settings-help">
-          O Safari pode apagar os dados se limpares a cache. Exporta regularmente e guarda o ficheiro em Ficheiros/iCloud para poderes restaurar.
+          O Safari pode apagar os dados se limpares a cache. Exporta regularmente e guarda o ficheiro em Ficheiros/iCloud para poderes restaurar. As fotos da Lista (comprimidas) entram na cópia JSON.
         </p>
         <div className="backup-actions">
           <button type="button" className="btn btn-primary" onClick={() => void onExportBackup()}>
