@@ -1384,3 +1384,88 @@ button.food-list-thumb-btn:active {
   font-size: 0.95rem;
   font-weight: 560;
 }
+
+/* Histórico agrupado por semana */
+.history-weeks {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.history-week {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.history-week-header {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--green-bright);
+  border-radius: var(--radius);
+  padding: 12px;
+}
+
+.history-week-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.history-week-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 650;
+  color: var(--green-soft);
+}
+
+.history-week-days {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.history-week-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.history-week-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 8px 4px;
+}
+
+.history-week-label {
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 3px;
+}
+
+.history-week-value {
+  font-size: 0.9rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.history-week-value.surplus {
+  color: #ffb4a8;
+}
+
+.history-week-value.deficit {
+  color: #9be7b8;
+}
