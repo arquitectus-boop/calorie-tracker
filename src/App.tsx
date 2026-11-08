@@ -27,6 +27,8 @@ function App() {
     editFoodInList,
     removeFoodFromList,
     syncFoodPhoto,
+    isInList,
+    ensureListed,
     photoUrls,
     setDayBurned,
     settings,
@@ -175,6 +177,7 @@ function App() {
               }
               initialPhotoUrl={formPhotoUrl}
               submitLabel={editing ? 'Guardar' : 'Adicionar'}
+              isInList={(n, k, pt) => isInList(n, k, pt, editing?.id)}
               onCancel={() => {
                 setEditing(null)
                 setQuickPrefill(null)
@@ -187,14 +190,23 @@ function App() {
                   showToast('Registo atualizado')
                 } else {
                   await addEntry(entryData)
-                  showToast('Registo adicionado')
+                  showToast(
+                    entryData.inList ? 'Registo adicionado' : 'Registo adicionado (fora da Lista)',
+                  )
                 }
-                await syncFoodPhoto(
-                  entryData.name,
-                  entryData.kcal,
-                  entryData.portionType,
-                  photo,
-                )
+                if (entryData.inList) {
+                  // syncFoodPhoto also un-hides the key when it changes the catalog.
+                  if (photo.action === 'keep') {
+                    ensureListed(entryData.name, entryData.kcal, entryData.portionType)
+                  } else {
+                    await syncFoodPhoto(
+                      entryData.name,
+                      entryData.kcal,
+                      entryData.portionType,
+                      photo,
+                    )
+                  }
+                }
                 setEditing(null)
                 setQuickPrefill(null)
                 setSelectedDate(entryData.date === todayISO() ? null : entryData.date)

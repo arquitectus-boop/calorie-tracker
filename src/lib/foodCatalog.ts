@@ -5,7 +5,8 @@ import { isPortionType, portionOf } from './portion'
  * Lightweight food catalog for the Lista tab, stored in localStorage.
  *
  * The Lista is a merge of:
- *  - foods derived from the FoodEntry history (name + kcal), and
+ *  - foods derived from the FoodEntry history (name + kcal), skipping entries
+ *    marked `inList: false` (logged with «Guardar na Lista» off), and
  *  - catalog foods (manually added or edited in the Lista).
  *
  * Deleting a food from the Lista never touches FoodEntry history: it only
@@ -132,6 +133,8 @@ interface HistoryAgg {
 function aggregateHistory(entries: FoodEntry[]): Map<string, HistoryAgg> {
   const map = new Map<string, HistoryAgg>()
   for (const e of entries) {
+    // One-off entries the user chose not to keep in the Lista.
+    if (e.inList === false) continue
     const portionType = portionOf(e)
     const key = foodKey(e.name, e.kcal, portionType)
     const cur = map.get(key)
@@ -328,4 +331,41 @@ export function buildPhotoLookup(
     for (const k of f.keys) map[k] = url
   }
   return map
+}
+
+/** Whether a food (name + kcal + portion) is currently visible in the Lista. */
+export function isFoodInList(
+  foods: FoodListItem[],
+  name: string,
+  kcal: number,
+  portionType: PortionType,
+): boolean {
+  if (!name.trim() || !Number.isFinite(kcal) || kcal <= 0) return false
+  const key = foodKey(name, kcal, portionType)
+  return foods.some((f) => f.keys.includes(key))
+}
+
+/** Remove a key from the hidden set (so a re-saved food shows again). */
+export function unhideFoodKey(catalog: FoodCatalog, key: string): FoodCatalog {
+  if (catalog.hidden[key] === undefined) return catalog
+  return { ...catalog, hidden: unhide(catalog.hidden, key) }
+}
+
+const ADD_TO_LIST_PREF = 'calorie-tracker-add-to-list-v1'
+
+/** Last choice of «Guardar na Lista» for new entries (default: on). */
+export function loadAddToListPref(): boolean {
+  try {
+    return localStorage.getItem(ADD_TO_LIST_PREF) !== '0'
+  } catch {
+    return true
+  }
+}
+
+export function saveAddToListPref(value: boolean): void {
+  try {
+    localStorage.setItem(ADD_TO_LIST_PREF, value ? '1' : '0')
+  } catch {
+    // ignore
+  }
 }

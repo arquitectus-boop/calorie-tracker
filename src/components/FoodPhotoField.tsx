@@ -5,6 +5,8 @@ interface Props {
   previewUrl?: string
   photoBusy?: boolean
   disabled?: boolean
+  /** Text under the placeholder when there is no photo */
+  emptyLabel?: string
   onFile: (file: File) => void
   onRemove: () => void
 }
@@ -14,6 +16,7 @@ export function FoodPhotoField({
   previewUrl,
   photoBusy = false,
   disabled = false,
+  emptyLabel = 'Sem foto (opcional)',
   onFile,
   onRemove,
 }: Props) {
@@ -38,7 +41,7 @@ export function FoodPhotoField({
       ) : (
         <div className="food-photo-preview-wrap">
           <FoodPhotoPlaceholder className="food-photo-preview food-photo-preview-empty" />
-          <p className="food-photo-empty">Sem foto (opcional)</p>
+          <p className="food-photo-empty">{emptyLabel}</p>
         </div>
       )}
       <div className="food-photo-actions">

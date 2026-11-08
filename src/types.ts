@@ -15,6 +15,11 @@ export interface FoodEntry {
   quantity: number
   /** Optional; missing means 'unit' (older data) */
   portionType?: PortionType
+  /**
+   * false = one-off entry kept out of the Lista (e.g. a manually calculated
+   * meal). Missing/true = default behaviour: the food appears in the Lista.
+   */
+  inList?: boolean
   createdAt: number
   updatedAt: number
 }

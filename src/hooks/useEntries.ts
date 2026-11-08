@@ -22,10 +22,12 @@ import {
   addCatalogFood,
   editCatalogFood,
   foodKey,
+  isFoodInList,
   loadCatalog,
   mergeFoods,
   removeCatalogFood,
   saveCatalog,
+  unhideFoodKey,
   type FoodCatalog,
   type FoodListItem,
 } from '../lib/foodCatalog'
@@ -153,6 +155,7 @@ export function useEntries() {
       name: string
       quantity: number
       portionType: PortionType
+      inList?: boolean
     }) => {
       const now = Date.now()
       const entry: FoodEntry = {
@@ -162,6 +165,8 @@ export function useEntries() {
         name: partial.name.trim(),
         quantity: partial.quantity,
         portionType: partial.portionType,
+        // Only store the flag when the entry is kept out of the Lista.
+        ...(partial.inList === false ? { inList: false } : {}),
         createdAt: now,
         updatedAt: now,
       }
@@ -173,7 +178,8 @@ export function useEntries() {
   )
 
   const updateEntry = useCallback(async (entry: FoodEntry) => {
-    const updated = { ...entry, updatedAt: Date.now(), name: entry.name.trim() }
+    const updated: FoodEntry = { ...entry, updatedAt: Date.now(), name: entry.name.trim() }
+    if (updated.inList !== false) delete updated.inList
     await saveEntry(updated)
     setEntries((prev) =>
       prev.map((e) => (e.id === updated.id ? updated : e)).sort(sortEntries),
@@ -238,6 +244,27 @@ export function useEntries() {
   const allFoods = useMemo(
     () => mergeFoods(entries, catalog),
     [entries, catalog],
+  )
+
+  /**
+   * Is this food already in the Lista without counting `excludeEntryId`
+   * (the registo being edited)? Used to show «Já está na Lista».
+   */
+  const isInList = useCallback(
+    (name: string, kcal: number, portionType: PortionType, excludeEntryId?: string) => {
+      const source = excludeEntryId ? entries.filter((e) => e.id !== excludeEntryId) : entries
+      return isFoodInList(mergeFoods(source, catalog), name, kcal, portionType)
+    },
+    [entries, catalog],
+  )
+
+  /** Make sure a food saved with «Guardar na Lista» on is not hidden by an old ✕. */
+  const ensureListed = useCallback(
+    (name: string, kcal: number, portionType: PortionType) => {
+      const next = unhideFoodKey(catalog, foodKey(name, kcal, portionType))
+      if (next !== catalog) commitCatalog(next)
+    },
+    [catalog, commitCatalog],
   )
 
   const addFoodToList = useCallback(
@@ -406,6 +433,8 @@ export function useEntries() {
     editFoodInList,
     removeFoodFromList,
     syncFoodPhoto,
+    isInList,
+    ensureListed,
     photoUrls,
   }
 }

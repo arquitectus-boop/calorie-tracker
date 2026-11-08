@@ -1469,3 +1469,61 @@ button.food-list-thumb-btn:active {
 .history-week-value.deficit {
   color: #9be7b8;
 }
+
+/* «Guardar na Lista de alimentos» toggle (Adicionar / Editar registo) */
+.list-toggle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  padding: 12px 14px;
+  min-height: var(--tap);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.list-toggle input[type='checkbox'] {
+  flex: 0 0 auto;
+  width: 24px;
+  height: 24px;
+  margin: 0;
+  accent-color: var(--green-bright);
+}
+
+.list-toggle-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.list-toggle-text strong {
+  font-size: 0.98rem;
+  font-weight: 600;
+}
+
+.list-toggle-text small {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.list-toggle-done {
+  cursor: default;
+  color: var(--green-soft);
+  font-size: 0.95rem;
+}
+
+.list-toggle-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(56, 142, 90, 0.35);
+  font-weight: 700;
+}

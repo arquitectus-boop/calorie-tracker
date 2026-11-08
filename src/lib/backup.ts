@@ -55,6 +55,8 @@ function isFoodEntry(value: unknown): value is FoodEntry {
     value.quantity > 0 &&
     // Optional: older backups have no portionType (→ 'unit')
     (value.portionType === undefined || isPortionType(value.portionType)) &&
+    // Optional: older backups have no inList flag (→ shown in the Lista)
+    (value.inList === undefined || typeof value.inList === 'boolean') &&
     isFiniteNumber(value.createdAt) &&
     isFiniteNumber(value.updatedAt)
   )

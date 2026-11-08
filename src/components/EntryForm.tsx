@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { todayISO } from '../lib/dates'
+import { loadAddToListPref, saveAddToListPref } from '../lib/foodCatalog'
 import { compressImageFile } from '../lib/photo'
 import { formatNumber, lineTotal, portionOf } from '../lib/portion'
 import type { PhotoChange } from '../hooks/useEntries'
@@ -12,6 +13,8 @@ interface Props {
   /** Foto do catálogo (Lista) para este alimento, se existir */
   initialPhotoUrl?: string
   submitLabel: string
+  /** Is this food already in the Lista (not counting the registo being edited)? */
+  isInList?: (name: string, kcal: number, portionType: PortionType) => boolean
   onSubmit: (data: {
     date: string
     kcal: number
@@ -19,6 +22,8 @@ interface Props {
     quantity: number
     portionType: PortionType
     photo: PhotoChange
+    /** false = keep this registo out of the Lista */
+    inList: boolean
   }) => void | Promise<void>
   onCancel?: () => void
 }
@@ -40,9 +45,14 @@ export function EntryForm({
   initial,
   initialPhotoUrl,
   submitLabel,
+  isInList,
   onSubmit,
   onCancel,
 }: Props) {
+  const isEdit = Boolean(initial?.id)
+  const [saveToList, setSaveToList] = useState(() =>
+    isEdit ? initial?.inList !== false : loadAddToListPref(),
+  )
   const [portionType, setPortionType] = useState<PortionType>(portionOf(initial))
   const [date, setDate] = useState(initial?.date ?? todayISO())
   const [kcal, setKcal] = useState(
@@ -69,6 +79,7 @@ export function EntryForm({
     setPreviewUrl(initialPhotoUrl)
     setSavedPhotoUrl(initialPhotoUrl)
     setPhotoChange({ action: 'keep' })
+    setSaveToList(initial?.id ? initial.inList !== false : loadAddToListPref())
   }, [initial, initialPhotoUrl])
 
   const per100g = portionType === 'per100g'
@@ -78,6 +89,12 @@ export function EntryForm({
     Number.isFinite(k) && k > 0 && Number.isFinite(q) && q > 0
       ? lineTotal(k, q, portionType)
       : null
+
+  const alreadyInList = Boolean(
+    isInList && Number.isFinite(k) && k > 0 && isInList(name, k, portionType),
+  )
+  /** Effective choice: a food already in the Lista always stays there. */
+  const inList = alreadyInList || saveToList
 
   function changePortion(next: PortionType) {
     if (next === portionType) return
@@ -132,13 +149,17 @@ export function EntryForm({
     }
     setBusy(true)
     try {
+      // Remember the toggle for the next new registo (only when it was shown).
+      if (!isEdit && !alreadyInList) saveAddToListPref(saveToList)
       await onSubmit({
         date,
         kcal: k,
         name: name.trim(),
         quantity: q,
         portionType,
-        photo: photoChange,
+        // Photos live in the Lista catalog: none to sync for a one-off registo.
+        photo: inList ? photoChange : { action: 'keep' },
+        inList,
       })
     } finally {
       setBusy(false)
@@ -152,9 +173,10 @@ export function EntryForm({
       <PortionToggle value={portionType} onChange={changePortion} />
 
       <FoodPhotoField
-        previewUrl={previewUrl}
+        previewUrl={inList ? previewUrl : undefined}
         photoBusy={photoBusy}
-        disabled={busy}
+        disabled={busy || !inList}
+        emptyLabel={inList ? undefined : 'Foto só para alimentos da Lista'}
         onFile={(file) => void handlePhotoFile(file)}
         onRemove={removePhoto}
       />
@@ -205,6 +227,29 @@ export function EntryForm({
           />
         </label>
       </div>
+
+      {alreadyInList ? (
+        <p className="list-toggle list-toggle-done" aria-live="polite">
+          <span className="list-toggle-icon" aria-hidden="true">✓</span>
+          Já está na Lista de alimentos
+        </p>
+      ) : (
+        <label className="list-toggle">
+          <input
+            type="checkbox"
+            checked={saveToList}
+            onChange={(e) => setSaveToList(e.target.checked)}
+          />
+          <span className="list-toggle-text">
+            <strong>Guardar na Lista de alimentos</strong>
+            <small>
+              {saveToList
+                ? 'Fica na Lista para usares outra vez.'
+                : 'Só neste dia — conta nos totais, mas não entra na Lista.'}
+            </small>
+          </span>
+        </label>
+      )}
 
       <p className="line-preview" aria-live="polite">
         Total: <strong>{preview !== null ? formatNumber(preview) : '—'}</strong> kcal
